@@ -3,89 +3,39 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BTTS Angebots-Kalkulator</title>
+  <title>LPD Kalkulator</title>
   <style>
     :root {
-      --bg: #0a0a0a;
-      --card: #141414;
-      --border: #2a2a2a;
-      --text: #f5f5f5;
-      --muted: #888;
-      --accent: #e63946;
-      --accent2: #f4a261;
-      --green: #2ecc71;
+      --bg: #0a0a0a; --card: #141414; --border: #2a2a2a;
+      --text: #f5f5f5; --muted: #888; --accent: #e63946;
+      --accent2: #f4a261; --green: #2ecc71;
     }
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-      padding: 16px;
-    }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 16px; }
     .container { max-width: 480px; margin: 0 auto; }
-    
     header { text-align: center; padding: 24px 0 16px; }
     header img { height: 40px; margin-bottom: 8px; filter: invert(1); }
     header h1 { font-size: 1.5rem; font-weight: 800; letter-spacing: -0.02em; }
-    header h1 span { color: var(--accent); }
     header p { font-size: 0.75rem; color: var(--muted); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.08em; }
-    
-    .card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 20px;
-      margin-bottom: 12px;
-    }
-    .card-title {
-      font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
-      letter-spacing: 0.1em; color: var(--muted); margin-bottom: 16px;
-    }
-    
-    label {
-      display: block; font-size: 0.75rem; font-weight: 600; color: var(--muted);
-      margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em;
-    }
-    select, input[type="number"] {
-      width: 100%; padding: 12px 14px; background: var(--bg);
-      border: 1px solid var(--border); border-radius: 10px;
-      color: var(--text); font-size: 1rem; font-weight: 500;
-      outline: none; transition: border-color 0.2s; -webkit-appearance: none;
-      margin-bottom: 14px;
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 20px; margin-bottom: 12px; }
+    .card-title { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 16px; }
+    label { display: block; font-size: 0.75rem; font-weight: 600; color: var(--muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em; }
+    select, input[type="number"], input[type="password"], input[type="text"] {
+      width: 100%; padding: 12px 14px; background: var(--bg); border: 1px solid var(--border); border-radius: 10px;
+      color: var(--text); font-size: 1rem; font-weight: 500; outline: none; transition: border-color 0.2s; -webkit-appearance: none; margin-bottom: 14px;
     }
     select:focus, input:focus { border-color: var(--accent); }
     select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23888' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px; }
-    
     .row { display: flex; gap: 10px; }
     .row > div { flex: 1; }
-    
-    .category-tabs {
-      display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px;
-    }
-    .cat-tab {
-      padding: 6px 12px; background: var(--bg); border: 1px solid var(--border);
-      border-radius: 8px; color: var(--muted); font-size: 0.75rem; font-weight: 600;
-      cursor: pointer; transition: all 0.2s; white-space: nowrap;
-    }
+    .category-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+    .cat-tab { padding: 6px 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--muted); font-size: 0.75rem; font-weight: 600; cursor: pointer; transition: all 0.2s; white-space: nowrap; }
     .cat-tab.active { border-color: var(--accent); color: var(--accent); background: rgba(230,57,70,0.1); }
-    
     .print-sides { display: flex; gap: 8px; margin-bottom: 14px; }
-    .print-sides button {
-      flex: 1; padding: 10px; background: var(--bg); border: 2px solid var(--border);
-      border-radius: 10px; color: var(--muted); font-size: 0.85rem; font-weight: 600;
-      cursor: pointer; transition: all 0.2s;
-    }
+    .print-sides button { flex: 1; padding: 10px; background: var(--bg); border: 2px solid var(--border); border-radius: 10px; color: var(--muted); font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
     .print-sides button.active { border-color: var(--accent); color: var(--accent); background: rgba(230,57,70,0.1); }
-    
-    .result {
-      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-      border: 1px solid #2a3a5e; border-radius: 16px; padding: 20px; margin-bottom: 12px;
-    }
-    .result-row {
-      display: flex; justify-content: space-between; align-items: center;
-      padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.06);
-    }
+    .result { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border: 1px solid #2a3a5e; border-radius: 16px; padding: 20px; margin-bottom: 12px; }
+    .result-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.06); }
     .result-row:last-child { border-bottom: none; }
     .result-row .label { font-size: 0.85rem; color: var(--muted); }
     .result-row .value { font-size: 0.95rem; font-weight: 600; }
@@ -94,46 +44,20 @@
     .result-row.total .label { font-size: 1rem; font-weight: 700; color: var(--text); }
     .result-row.total .value { font-size: 1.5rem; font-weight: 800; color: var(--green); }
     .result-row.unit .value { color: var(--accent2); font-size: 0.85rem; }
-    
-    .badge {
-      display: inline-block; padding: 3px 8px; border-radius: 6px;
-      font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
-    }
+    .badge { display: inline-block; padding: 3px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
     .badge-green { background: rgba(46,204,113,0.15); color: var(--green); }
     .badge-orange { background: rgba(244,162,97,0.15); color: var(--accent2); }
-    
     .margin-bar { margin-top: 12px; background: var(--bg); border-radius: 8px; height: 8px; overflow: hidden; }
     .margin-bar-fill { height: 100%; border-radius: 8px; transition: width 0.3s ease; }
-    
     .btn-row { display: flex; gap: 8px; margin-bottom: 12px; }
-    .share-btn {
-      flex: 1; padding: 14px; border: none; border-radius: 12px;
-      color: white; font-size: 0.85rem; font-weight: 700; cursor: pointer;
-      transition: opacity 0.2s; text-transform: uppercase; letter-spacing: 0.05em;
-    }
+    .share-btn { flex: 1; padding: 14px; border: none; border-radius: 12px; color: white; font-size: 0.85rem; font-weight: 700; cursor: pointer; transition: opacity 0.2s; text-transform: uppercase; letter-spacing: 0.05em; }
     .share-btn:active { opacity: 0.8; }
     .share-btn.primary { background: var(--accent); }
     .share-btn.secondary { background: #333; color: var(--muted); }
-    
-    .ek-display {
-      text-align: center; padding: 8px; margin-bottom: 14px;
-      background: rgba(230,57,70,0.08); border-radius: 8px;
-      font-size: 0.8rem; color: var(--accent);
-    }
+    .ek-display { text-align: center; padding: 8px; margin-bottom: 14px; background: rgba(230,57,70,0.08); border-radius: 8px; font-size: 0.8rem; color: var(--accent); }
     .ek-display strong { font-size: 1.1rem; }
-
-    .info-row {
-      display: flex; justify-content: space-between; padding: 4px 0;
-      font-size: 0.75rem; color: var(--muted);
-    }
-    
-    footer { text-align: center; padding: 20px 0; font-size: 0.7rem; color: #444; }
-    footer a { color: var(--accent); text-decoration: none; }
-    
-    .search-item {
-      padding: 10px 14px; cursor: pointer; transition: background 0.15s;
-      border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;
-    }
+    .info-row { display: flex; justify-content: space-between; padding: 4px 0; font-size: 0.75rem; color: var(--muted); }
+    .search-item { padding: 10px 14px; cursor: pointer; transition: background 0.15s; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
     .search-item:last-child { border-bottom: none; }
     .search-item:hover, .search-item.highlighted { background: rgba(230,57,70,0.1); }
     .search-item .name { font-size: 0.9rem; font-weight: 500; }
@@ -141,146 +65,129 @@
     .search-item .meta { font-size: 0.75rem; color: var(--muted); text-align: right; }
     .search-item .meta .price { color: var(--accent2); font-weight: 600; font-size: 0.85rem; }
     .search-empty { padding: 16px; text-align: center; color: var(--muted); font-size: 0.85rem; }
+    footer { text-align: center; padding: 20px 0; font-size: 0.7rem; color: #444; }
+    footer a { color: var(--accent); text-decoration: none; }
+
+    /* LOGIN */
+    #loginScreen { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 80vh; }
+    #loginScreen .card { width: 100%; max-width: 380px; }
+    .login-btn { width: 100%; padding: 14px; background: var(--accent); border: none; border-radius: 12px; color: white; font-size: 1rem; font-weight: 700; cursor: pointer; text-transform: uppercase; letter-spacing: 0.05em; }
+    .login-btn:active { opacity: 0.8; }
+    .login-error { color: var(--accent); font-size: 0.8rem; text-align: center; margin-top: 8px; display: none; }
+    #appScreen { display: none; }
   </style>
 </head>
 <body>
   <div class="container">
-    <header>
-      <img src="https://localprintdepartment.com/cdn/shop/files/LPD_Logo_BLK.png?v=1706191565&width=600" alt="Local Print Department">
-      <h1>Angebots-Kalkulator</h1>
-      <p>133 Produkte · Echte EK-Preise · Staffelrabatte</p>
-    </header>
-
-    <div class="card">
-      <div class="card-title">Produkt wählen</div>
-      
-      <label>Kategorie</label>
-      <div class="category-tabs" id="catTabs"></div>
-      
-      <label>Produkt suchen</label>
-      <div style="position:relative">
-        <input type="text" id="searchInput" placeholder="z.B. Creator, Hoodie, Stella..." 
-          oninput="onSearch()" onfocus="showDropdown()" autocomplete="off"
-          style="width:100%;padding:12px 14px 12px 36px;background:var(--bg);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:1rem;font-weight:500;outline:none;margin-bottom:0;transition:border-color 0.2s">
-        <svg style="position:absolute;left:12px;top:13px;width:16px;height:16px;opacity:0.4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35" stroke-width="2" stroke-linecap="round"/></svg>
-        <div id="searchDropdown" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:50;margin-top:4px;background:var(--card);border:1px solid var(--border);border-radius:10px;max-height:240px;overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,0.5)"></div>
-      </div>
-      <div style="height:14px"></div>
-      <select id="productSelect" onchange="onProductChange()" style="display:none">
-        <option value="">— Produkt wählen —</option>
-      </select>
-      
-      <div class="ek-display" id="ekDisplay" style="display:none">
-        EK Netto: <strong id="ekValue">—</strong>
-      </div>
-
-      <label>Oder: Eigener EK Netto (€)</label>
-      <input type="number" id="customEk" step="0.01" placeholder="z.B. 4.50" oninput="selectCustom()">
-    </div>
-    
-    <div class="card">
-      <div class="card-title">Konfiguration</div>
-      <label>Veredelungsart</label>
-      <div class="print-sides" style="margin-bottom:10px">
-        <button onclick="setMethod('dtg')" id="method-dtg" class="active">DTG</button>
-        <button onclick="setMethod('dtf')" id="method-dtf">DTF</button>
-        <button onclick="setMethod('plastisol')" id="method-plastisol">Plastisol</button>
-      </div>
-      
-      <label>Druckseiten</label>
-      <div class="print-sides">
-        <button onclick="setSides(1)" id="side1" class="active">1 Seite</button>
-        <button onclick="setSides(2)" id="side2">2 Seiten</button>
-        <button onclick="setSides(3)" id="side3">3 Seiten</button>
-      </div>
-      
-      <div class="row">
-        <div>
-          <label>Menge</label>
-          <input type="number" id="qty" value="10" min="1" oninput="calc()">
-        </div>
-        <div>
-          <label>Multiplikator</label>
-          <input type="number" id="multi" value="2.5" step="0.1" min="1" oninput="calc()">
-        </div>
+    <!-- LOGIN SCREEN -->
+    <div id="loginScreen">
+      <header>
+        <img src="https://localprintdepartment.com/cdn/shop/files/LPD_Logo_BLK.png?v=1706191565&width=600" alt="LPD">
+        <h1>Angebots-Kalkulator</h1>
+        <p>Interner Zugang</p>
+      </header>
+      <div class="card">
+        <div class="card-title">Anmelden</div>
+        <label>Passwort</label>
+        <input type="password" id="loginPassword" placeholder="Passwort eingeben..." onkeydown="if(event.key==='Enter')doLogin()">
+        <button class="login-btn" onclick="doLogin()">🔓 Einloggen</button>
+        <p class="login-error" id="loginError">Falsches Passwort</p>
       </div>
     </div>
 
-    <div class="result" id="resultCard" style="display:none">
-      <div class="card-title">Kalkulation</div>
-      <div id="productInfo"></div>
-      <div class="result-row">
-        <span class="label">EK Netto (Stück)</span>
-        <span class="value" id="resEk">—</span>
-      </div>
-      <div class="result-row">
-        <span class="label">+ Druck</span>
-        <span class="value" id="resPrint">—</span>
-      </div>
-      <div class="result-row">
-        <span class="label">× Multiplikator</span>
-        <span class="value" id="resMulti">—</span>
-      </div>
-      <div class="result-row" style="border-bottom: 1px solid rgba(255,255,255,0.15)">
-        <span class="label">= VK Brutto (Stück)</span>
-        <span class="value" id="resVk">—</span>
-      </div>
-      <div class="result-row discount">
-        <span class="label">Staffelrabatt</span>
-        <span class="value" id="resDiscount">—</span>
-      </div>
-      <div class="result-row">
-        <span class="label">VK nach Rabatt</span>
-        <span class="value" id="resVkDiscount">—</span>
-      </div>
-      <div class="result-row unit">
-        <span class="label">Marge pro Stück</span>
-        <span class="value" id="resMargin">—</span>
-      </div>
-      <div class="result-row total">
-        <span class="label">Gesamtpreis</span>
-        <span class="value" id="resTotal">—</span>
-      </div>
-      <div class="margin-bar">
-        <div class="margin-bar-fill" id="marginBar"></div>
-      </div>
-      <div style="margin-top: 8px">
-        <div class="info-row">
-          <span>Gewinn gesamt</span>
-          <span id="resProfit">—</span>
+    <!-- APP SCREEN (hidden until login) -->
+    <div id="appScreen">
+      <header>
+        <img src="https://localprintdepartment.com/cdn/shop/files/LPD_Logo_BLK.png?v=1706191565&width=600" alt="LPD">
+        <h1>Angebots-Kalkulator</h1>
+        <p id="productCountLabel">Produkte · Echte EK-Preise · Staffelrabatte</p>
+      </header>
+
+      <div class="card">
+        <div class="card-title">Produkt wählen</div>
+        <label>Kategorie</label>
+        <div class="category-tabs" id="catTabs"></div>
+        <label>Produkt suchen</label>
+        <div style="position:relative">
+          <input type="text" id="searchInput" placeholder="z.B. Creator, Hoodie, Stella..." oninput="onSearch()" onfocus="showDropdown()" autocomplete="off" style="padding-left:36px;margin-bottom:0">
+          <svg style="position:absolute;left:12px;top:13px;width:16px;height:16px;opacity:0.4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35" stroke-width="2" stroke-linecap="round"/></svg>
+          <div id="searchDropdown" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:50;margin-top:4px;background:var(--card);border:1px solid var(--border);border-radius:10px;max-height:240px;overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,0.5)"></div>
         </div>
-        <div class="info-row">
-          <span>Gewinn-Marge</span>
-          <span id="resProfitPct">—</span>
+        <div style="height:14px"></div>
+        <div class="ek-display" id="ekDisplay" style="display:none">EK Netto: <strong id="ekValue">—</strong></div>
+        <label>Oder: Eigener EK Netto (€)</label>
+        <input type="number" id="customEk" step="0.01" placeholder="z.B. 4.50" oninput="selectCustom()">
+      </div>
+
+      <div class="card">
+        <div class="card-title">Konfiguration</div>
+        <label>Veredelungsart</label>
+        <div class="print-sides" style="margin-bottom:10px">
+          <button onclick="setMethod('dtg')" id="method-dtg" class="active">DTG</button>
+          <button onclick="setMethod('dtf')" id="method-dtf">DTF</button>
+          <button onclick="setMethod('plastisol')" id="method-plastisol">Plastisol</button>
+        </div>
+        <label>Druckseiten</label>
+        <div class="print-sides">
+          <button onclick="setSides(1)" id="side1" class="active">1 Seite</button>
+          <button onclick="setSides(2)" id="side2">2 Seiten</button>
+          <button onclick="setSides(3)" id="side3">3 Seiten</button>
+        </div>
+        <div class="row">
+          <div><label>Menge</label><input type="number" id="qty" value="10" min="1" oninput="calc()"></div>
+          <div><label>Multiplikator</label><input type="number" id="multi" value="2.5" step="0.1" min="1" oninput="calc()"></div>
         </div>
       </div>
-    </div>
 
-    <div class="btn-row">
-      <button class="share-btn primary" onclick="copyOffer()">📋 Angebot kopieren</button>
-      <button class="share-btn secondary" onclick="copyInternal()">🔒 Intern kopieren</button>
-    </div>
-    <div class="btn-row">
-      <button class="share-btn primary" style="background:#2563eb" onclick="downloadPDF()">📄 PDF Angebot</button>
-    </div>
+      <div class="result" id="resultCard" style="display:none">
+        <div class="card-title">Kalkulation</div>
+        <div class="result-row"><span class="label">EK Netto (Stück)</span><span class="value" id="resEk">—</span></div>
+        <div class="result-row"><span class="label">+ Veredelung</span><span class="value" id="resPrint">—</span></div>
+        <div class="result-row"><span class="label">× Multiplikator</span><span class="value" id="resMulti">—</span></div>
+        <div class="result-row" style="border-bottom:1px solid rgba(255,255,255,0.15)"><span class="label">= VK Brutto (Stück)</span><span class="value" id="resVk">—</span></div>
+        <div class="result-row discount"><span class="label">Staffelrabatt</span><span class="value" id="resDiscount">—</span></div>
+        <div class="result-row"><span class="label">VK nach Rabatt</span><span class="value" id="resVkDiscount">—</span></div>
+        <div class="result-row unit"><span class="label">Marge pro Stück</span><span class="value" id="resMargin">—</span></div>
+        <div class="result-row total"><span class="label">Gesamtpreis</span><span class="value" id="resTotal">—</span></div>
+        <div class="margin-bar"><div class="margin-bar-fill" id="marginBar"></div></div>
+        <div style="margin-top:8px">
+          <div class="info-row"><span>Gewinn gesamt</span><span id="resProfit">—</span></div>
+          <div class="info-row"><span>Gewinn-Marge</span><span id="resProfitPct">—</span></div>
+        </div>
+      </div>
 
-    <footer>
-      Built by <a href="#">Ghostzicht</a> 👻 for LPD · <span id="productCount">0</span> Produkte
-    </footer>
+      <div class="btn-row">
+        <button class="share-btn primary" onclick="copyOffer()">📋 Angebot kopieren</button>
+        <button class="share-btn secondary" onclick="copyInternal()">🔒 Intern kopieren</button>
+      </div>
+      <div class="btn-row">
+        <button class="share-btn primary" style="background:#2563eb" onclick="downloadPDF()">📄 PDF Angebot</button>
+      </div>
+      <footer>Built by <a href="#">Ghostzicht</a> 👻 for LPD · <span id="productCount">0</span> Produkte</footer>
+    </div>
   </div>
 
   <script>
-    const PRODUCTS = {"accessory":[{"name":"Bucket Hat","ek":7.28},{"name":"Fisherman Beanie","ek":7.07},{"name":"Rib Beanie","ek":6.93}],"baby":[{"name":"Baby Bib","ek":2.94},{"name":"Baby Body","ek":4.55},{"name":"Baby Tumbler","ek":9.73}],"bag":[{"name":"Duffle Bag","ek":14.84},{"name":"Gym Bag","ek":5.74},{"name":"Hip Bag","ek":9.03},{"name":"Light Tote Bag","ek":1.95},{"name":"Mid Tote Bag","ek":3.5},{"name":"Shopping Bag","ek":4.76},{"name":"Shopping bag 2.0","ek":6.16},{"name":"Tote Bag","ek":3.92}],"hoodie":[{"name":"Bomber 2.0","ek":46.13},{"name":"Changer 2.0","ek":17.15},{"name":"Coacher","ek":27.58},{"name":"Cultivator 2.0","ek":25.9},{"name":"Drummer 2.0","ek":18.06},{"name":"Hygger Sherpa","ek":43.96},{"name":"Mini Changer 2.0","ek":12.74},{"name":"Mini Cultivator 2.0","ek":18.34}],"jacket":[{"name":"Commuter","ek":27.93}],"longsleeve":[{"name":"Creator 2.0 Long Sleeve","ek":7.28},{"name":"Freestyler Long Sleeve","ek":12.67},{"name":"Prepster 2.0 Long Sleeve","ek":13.09},{"name":"Stella Muser Long Sleeve","ek":7.28}],"other":[{"name":"Archer","ek":21.98},{"name":"Asher","ek":11.55},{"name":"Baby Changer","ek":9.1},{"name":"Baby Connector","ek":11.62},{"name":"Baby Creator","ek":3.64},{"name":"Baby Cruiser","ek":11.27},{"name":"Blaster","ek":9.17},{"name":"Blaster 2.0","ek":9.17},{"name":"Chaser","ek":20.86}],"t-shirt":[{"name":"Boarder Dry","ek":19.74},{"name":"Breezer","ek":5.11},{"name":"Brooker","ek":41.65},{"name":"Coaster Vintage","ek":11.48},{"name":"Connector 2.0","ek":23.94},{"name":"Cooper Dry","ek":33.18},{"name":"Crafter","ek":4.41},{"name":"Crafter Vintage","ek":7.84},{"name":"Creator 2.0","ek":5.11},{"name":"Cruiser 2.0","ek":22.33},{"name":"Freestyler","ek":10.5},{"name":"Freestyler Vintage","ek":12.53},{"name":"Jammer Dry","ek":29.12},{"name":"Knoxer","ek":26.46},{"name":"Ledger Dry","ek":25.97},{"name":"Liner","ek":35.7},{"name":"Matcher","ek":16.17},{"name":"Matcher Vintage","ek":22.75},{"name":"Miller Dry","ek":28.84},{"name":"Mini Bolter","ek":11.9},{"name":"Mini Creator 2.0","ek":3.78},{"name":"Mini Cruiser 2.0","ek":15.4},{"name":"Mini Mover 2.0","ek":14.98},{"name":"Mini Sprinter","ek":8.61},{"name":"Mixer","ek":21.35},{"name":"Mover 2.0","ek":22.12},{"name":"Mover Vintage","ek":27.44},{"name":"Padded Parker","ek":55.86},{"name":"Pencil Case","ek":3.29},{"name":"Prepster 2.0","ek":11.34},{"name":"Puffer","ek":66.64},{"name":"Puffer Gilet","ek":41.86},{"name":"Radder","ek":20.86},{"name":"Radder 2.0","ek":20.86},{"name":"Radder 2.0 Vintage","ek":24.64},{"name":"RE-Creator","ek":5.53},{"name":"RE-Cruiser","ek":22.33},{"name":"River","ek":32.9},{"name":"Rocker","ek":3.61},{"name":"Roller","ek":14.28},{"name":"Sider","ek":24.22},{"name":"Slammer","ek":26.46},{"name":"Slammer 2.0","ek":26.46},{"name":"Slammer 2.0 vintage","ek":31.78},{"name":"Sounder","ek":20.86},{"name":"Sparker 2.0","ek":7.7},{"name":"Speeder","ek":33.18},{"name":"Stanley Climber","ek":32.06},{"name":"Stanley Climber 2.0","ek":32.06},{"name":"Stanley Coaster","ek":7.98},{"name":"Stanley Denim Shirt","ek":22.12},{"name":"Stanley Discoverer","ek":49.42},{"name":"Stanley Guider","ek":20.86},{"name":"Stanley Navigator","ek":45.5},{"name":"Stanley Oxford Shirt","ek":21.7},{"name":"Stanley Presenter","ek":6.58},{"name":"Stanley Quester","ek":18.06},{"name":"Stanley Stancer","ek":4.97},{"name":"Stanley Styler Shirt","ek":21},{"name":"Stanley Trail Blazer","ek":34.86},{"name":"Stanley Voyager","ek":47.6},{"name":"Stanley Voyager 2.0","ek":47.6},{"name":"Stella Alma","ek":16.1},{"name":"Stella Ava","ek":4.69},{"name":"Stella Clara","ek":15.26},{"name":"Stella Climber","ek":32.06},{"name":"Stella Climber 2.0","ek":32.06},{"name":"Stella Coaster","ek":7.98},{"name":"Stella Collider","ek":7.28},{"name":"Stella Denim Shirt","ek":22.12},{"name":"Stella Discoverer","ek":49.42},{"name":"Stella Ella","ek":5.18},{"name":"Stella Expresser 2.0","ek":4.41},{"name":"Stella Guider","ek":20.86},{"name":"Stella Ida","ek":23.1},{"name":"Stella Isla","ek":4.76},{"name":"Stella Mia","ek":4.55},{"name":"Stella Muser","ek":5.11},{"name":"Stella Navigator","ek":45.36},{"name":"Stella Nora","ek":20.86},{"name":"Stella Nova","ek":5.88},{"name":"Stella Oxford Shirt","ek":21.7},{"name":"Stella Paloma","ek":22.12},{"name":"Stella Quester","ek":18.06},{"name":"Stella Serena","ek":4.41},{"name":"Stella Styler Shirt","ek":21},{"name":"Stella Trail Blazer","ek":34.86},{"name":"Stella Voyager","ek":47.6},{"name":"Stella Voyager 2.0","ek":47.6},{"name":"Striker","ek":33.6},{"name":"Trainer 2.0","ek":16.45},{"name":"Trekker","ek":34.86},{"name":"Trucker 2.0","ek":21},{"name":"Waker","ek":12.88},{"name":"Worker Shirt","ek":25.06}]};
+    // ENCRYPTED product data - only decryptable with correct password
+    const ENCRYPTED = {"salt":"NXbGMBMx77uCP13W3iIK8g==","iv":"kFUkTshzxvIoB127","tag":"b8VmD4B8SQm9Nh19mPkyHg==","data":"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"};
+
+    let PRODUCTS = null;
+    let allProducts = [];
+    let selectedCat = 'all';
+    let printSides = 1;
+    let printMethod = 'dtg';
+    let highlightIdx = -1;
+
+    const METHOD_CONFIG = {
+      dtg:       { label: 'DTG-Druck', costPerSide: 8 },
+      dtf:       { label: 'DTF-Druck', costPerSide: 8 },
+      plastisol: { label: 'Plastisol-Transfer', costPerSide: 8 },
+    };
 
     const CAT_LABELS = {
-      't-shirt': '👕 T-Shirts',
-      'hoodie': '🧥 Hoodies',
-      'longsleeve': '🧵 Longsleeves',
-      'jacket': '🧥 Jacken',
-      'bag': '👜 Taschen',
-      'accessory': '🧢 Accessoires',
-      'baby': '👶 Baby',
-      'other': '📦 Sonstige'
+      't-shirt': '👕 T-Shirts', 'hoodie': '🧥 Hoodies', 'longsleeve': '🧵 Longsleeves',
+      'jacket': '🧥 Jacken', 'bag': '👜 Taschen', 'accessory': '🧢 Accessoires',
+      'baby': '👶 Baby', 'other': '📦 Sonstige'
     };
 
     const DISCOUNTS = [
@@ -290,57 +197,89 @@
       { min: 1, pct: 0 },
     ];
 
-    let selectedCat = 'all';
-    let printSides = 1;
-    let printMethod = 'dtg';
-    
-    const METHOD_CONFIG = {
-      dtg:       { label: 'DTG-Druck', costPerSide: 8 },
-      dtf:       { label: 'DTF-Druck', costPerSide: 8 },
-      plastisol: { label: 'Plastisol-Transfer', costPerSide: 8 },
-    };
+    // --- DECRYPTION ---
+    async function decryptData(password) {
+      const salt = Uint8Array.from(atob(ENCRYPTED.salt), c => c.charCodeAt(0));
+      const iv = Uint8Array.from(atob(ENCRYPTED.iv), c => c.charCodeAt(0));
+      const tag = Uint8Array.from(atob(ENCRYPTED.tag), c => c.charCodeAt(0));
+      const data = Uint8Array.from(atob(ENCRYPTED.data), c => c.charCodeAt(0));
 
-    function setMethod(m) {
-      printMethod = m;
-      ['dtg','dtf','plastisol'].forEach(id => {
-        document.getElementById(`method-${id}`).classList.toggle('active', id === m);
-      });
-      calc();
+      const enc = new TextEncoder();
+      const keyMaterial = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveKey']);
+      const key = await crypto.subtle.deriveKey(
+        { name: 'PBKDF2', salt, iterations: 100000, hash: 'SHA-256' },
+        keyMaterial,
+        { name: 'AES-GCM', length: 256 },
+        false,
+        ['decrypt']
+      );
+
+      // Combine data + tag for Web Crypto API
+      const combined = new Uint8Array(data.length + tag.length);
+      combined.set(data);
+      combined.set(tag, data.length);
+
+      const decrypted = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, combined);
+      return JSON.parse(new TextDecoder().decode(decrypted));
     }
 
-    function init() {
+    // --- LOGIN ---
+    async function doLogin() {
+      const pw = document.getElementById('loginPassword').value;
+      try {
+        PRODUCTS = await decryptData(pw);
+        sessionStorage.setItem('lpd_auth', pw);
+        document.getElementById('loginScreen').style.display = 'none';
+        document.getElementById('appScreen').style.display = 'block';
+        initApp();
+      } catch (e) {
+        document.getElementById('loginError').style.display = 'block';
+        document.getElementById('loginPassword').style.borderColor = 'var(--accent)';
+        setTimeout(() => {
+          document.getElementById('loginError').style.display = 'none';
+          document.getElementById('loginPassword').style.borderColor = '';
+        }, 2000);
+      }
+    }
+
+    // Auto-login if session exists
+    (async () => {
+      const saved = sessionStorage.getItem('lpd_auth');
+      if (saved) {
+        try {
+          PRODUCTS = await decryptData(saved);
+          document.getElementById('loginScreen').style.display = 'none';
+          document.getElementById('appScreen').style.display = 'block';
+          initApp();
+        } catch (e) { sessionStorage.removeItem('lpd_auth'); }
+      }
+    })();
+
+    // --- APP ---
+    function initApp() {
       buildAllProducts();
-      // Count products
       let total = 0;
       Object.values(PRODUCTS).forEach(arr => total += arr.length);
       document.getElementById('productCount').textContent = total;
+      document.getElementById('productCountLabel').textContent = `${total} Produkte · Echte EK-Preise · Staffelrabatte`;
 
-      // Build category tabs
       const tabs = document.getElementById('catTabs');
+      tabs.innerHTML = '';
       const allTab = document.createElement('button');
-      allTab.className = 'cat-tab active';
-      allTab.textContent = `Alle (${total})`;
-      allTab.onclick = () => filterCat('all');
-      allTab.id = 'cat-all';
+      allTab.className = 'cat-tab active'; allTab.textContent = `Alle (${total})`;
+      allTab.onclick = () => filterCat('all'); allTab.id = 'cat-all';
       tabs.appendChild(allTab);
 
       Object.entries(CAT_LABELS).forEach(([key, label]) => {
         if (!PRODUCTS[key]) return;
         const tab = document.createElement('button');
-        tab.className = 'cat-tab';
-        tab.textContent = `${label} (${PRODUCTS[key].length})`;
-        tab.onclick = () => filterCat(key);
-        tab.id = `cat-${key}`;
+        tab.className = 'cat-tab'; tab.textContent = `${label} (${PRODUCTS[key].length})`;
+        tab.onclick = () => filterCat(key); tab.id = `cat-${key}`;
         tabs.appendChild(tab);
       });
-
       filterCat('all');
     }
 
-    // --- SEARCH ---
-    let allProducts = [];
-    let highlightIdx = -1;
-    
     function buildAllProducts() {
       allProducts = [];
       Object.entries(PRODUCTS).forEach(([cat, items]) => {
@@ -348,18 +287,15 @@
       });
     }
 
+    // --- SEARCH ---
     function onSearch() {
       const q = document.getElementById('searchInput').value.toLowerCase().trim();
-      const dropdown = document.getElementById('searchDropdown');
       highlightIdx = -1;
-      
       if (!q) { showDropdown(); return; }
-      
       const filtered = allProducts.filter(p => {
         const catLabel = (CAT_LABELS[p.cat] || p.cat).toLowerCase();
         return p.name.toLowerCase().includes(q) || catLabel.includes(q);
       });
-      
       renderDropdown(filtered, q);
     }
 
@@ -373,13 +309,10 @@
 
     function renderDropdown(items, query) {
       const dropdown = document.getElementById('searchDropdown');
-      
       if (items.length === 0) {
         dropdown.innerHTML = '<div class="search-empty">Kein Produkt gefunden</div>';
-        dropdown.style.display = 'block';
-        return;
+        dropdown.style.display = 'block'; return;
       }
-      
       dropdown.innerHTML = items.slice(0, 30).map((p, i) => {
         let displayName = p.name;
         if (query) {
@@ -387,114 +320,42 @@
           displayName = p.name.replace(regex, '<mark>$1</mark>');
         }
         const catLabel = (CAT_LABELS[p.cat] || p.cat).replace(/[^\w\s]/g, '').trim();
-        return `<div class="search-item" data-idx="${i}" onclick="selectSearchItem(${i})" data-product='${JSON.stringify(p).replace(/'/g, "&#39;")}'>
+        return `<div class="search-item" onclick='selectSearchItem(${JSON.stringify(p).replace(/'/g, "&#39;")})'>
           <span class="name">${displayName}</span>
           <span class="meta"><span class="price">${p.ek.toFixed(2)} €</span><br>${catLabel}</span>
         </div>`;
       }).join('');
-      
-      if (items.length > 30) {
-        dropdown.innerHTML += `<div class="search-empty">${items.length - 30} weitere... tippe genauer</div>`;
-      }
-      
+      if (items.length > 30) dropdown.innerHTML += `<div class="search-empty">${items.length - 30} weitere...</div>`;
       dropdown.style.display = 'block';
     }
 
-    function selectSearchItem(idx) {
-      const items = document.querySelectorAll('.search-item');
-      if (idx >= items.length) return;
-      const item = items[idx];
-      const p = JSON.parse(item.dataset.product);
-      
+    function selectSearchItem(p) {
+      if (typeof p === 'string') p = JSON.parse(p);
       document.getElementById('searchInput').value = p.name;
       document.getElementById('searchDropdown').style.display = 'none';
       document.getElementById('customEk').value = '';
       document.getElementById('ekDisplay').style.display = 'block';
       document.getElementById('ekValue').textContent = `${p.ek.toFixed(2)} €`;
-      
-      // Set the hidden select value
-      document.getElementById('productSelect').value = JSON.stringify({ name: p.name, ek: p.ek });
-      
-      // Store selected product
       window._selectedProduct = p;
       calc();
     }
 
-    // Keyboard nav
-    document.addEventListener('keydown', (e) => {
-      const dropdown = document.getElementById('searchDropdown');
-      if (dropdown.style.display === 'none') return;
-      const items = dropdown.querySelectorAll('.search-item');
-      if (!items.length) return;
-      
-      if (e.key === 'ArrowDown') {
-        e.preventDefault();
-        highlightIdx = Math.min(highlightIdx + 1, items.length - 1);
-        items.forEach((el, i) => el.classList.toggle('highlighted', i === highlightIdx));
-        items[highlightIdx].scrollIntoView({ block: 'nearest' });
-      } else if (e.key === 'ArrowUp') {
-        e.preventDefault();
-        highlightIdx = Math.max(highlightIdx - 1, 0);
-        items.forEach((el, i) => el.classList.toggle('highlighted', i === highlightIdx));
-        items[highlightIdx].scrollIntoView({ block: 'nearest' });
-      } else if (e.key === 'Enter' && highlightIdx >= 0) {
-        e.preventDefault();
-        selectSearchItem(highlightIdx);
-      } else if (e.key === 'Escape') {
-        dropdown.style.display = 'none';
-      }
-    });
-
-    // Close dropdown on outside click
     document.addEventListener('click', (e) => {
-      if (!e.target.closest('#searchInput') && !e.target.closest('#searchDropdown')) {
+      if (!e.target.closest('#searchInput') && !e.target.closest('#searchDropdown'))
         document.getElementById('searchDropdown').style.display = 'none';
-      }
     });
 
+    // --- FILTER ---
     function filterCat(cat) {
       selectedCat = cat;
       document.querySelectorAll('.cat-tab').forEach(t => t.classList.remove('active'));
       document.getElementById(`cat-${cat}`).classList.add('active');
-
-      const select = document.getElementById('productSelect');
-      select.innerHTML = '<option value="">— Produkt wählen —</option>';
-
-      const cats = cat === 'all' ? Object.keys(PRODUCTS) : [cat];
-      cats.forEach(c => {
-        if (!PRODUCTS[c]) return;
-        const group = document.createElement('optgroup');
-        group.label = CAT_LABELS[c] || c;
-        PRODUCTS[c].forEach(p => {
-          const opt = document.createElement('option');
-          opt.value = JSON.stringify(p);
-          opt.textContent = `${p.name} — ${p.ek.toFixed(2)} €`;
-          group.appendChild(opt);
-        });
-        select.appendChild(group);
-      });
-
-      calc();
     }
 
-    function onProductChange() {
-      const select = document.getElementById('productSelect');
-      if (select.value) {
-        const p = JSON.parse(select.value);
-        document.getElementById('customEk').value = '';
-        document.getElementById('ekDisplay').style.display = 'block';
-        document.getElementById('ekValue').textContent = `${p.ek.toFixed(2)} €`;
-      } else {
-        document.getElementById('ekDisplay').style.display = 'none';
-      }
-      calc();
-    }
-
-    function selectCustom() {
-      window._selectedProduct = null;
-      document.getElementById('productSelect').value = '';
-      document.getElementById('searchInput').value = '';
-      document.getElementById('ekDisplay').style.display = 'none';
+    // --- CONFIG ---
+    function setMethod(m) {
+      printMethod = m;
+      ['dtg','dtf','plastisol'].forEach(id => document.getElementById(`method-${id}`).classList.toggle('active', id === m));
       calc();
     }
 
@@ -504,32 +365,26 @@
       calc();
     }
 
-    function getDiscount(qty) {
-      for (const d of DISCOUNTS) { if (qty >= d.min) return d.pct; }
-      return 0;
+    function selectCustom() {
+      window._selectedProduct = null;
+      document.getElementById('searchInput').value = '';
+      document.getElementById('ekDisplay').style.display = 'none';
+      calc();
     }
 
+    function getDiscount(qty) { for (const d of DISCOUNTS) { if (qty >= d.min) return d.pct; } return 0; }
+
     function getEkAndName() {
-      if (window._selectedProduct) {
-        return { ek: window._selectedProduct.ek, name: window._selectedProduct.name };
-      }
-      const select = document.getElementById('productSelect');
-      if (select.value) {
-        const p = JSON.parse(select.value);
-        return { ek: p.ek, name: p.name };
-      }
+      if (window._selectedProduct) return { ek: window._selectedProduct.ek, name: window._selectedProduct.name };
       const customEk = parseFloat(document.getElementById('customEk').value);
       if (customEk > 0) return { ek: customEk, name: 'Custom' };
       return null;
     }
 
+    // --- CALC ---
     function calc() {
       const product = getEkAndName();
-      if (!product) {
-        document.getElementById('resultCard').style.display = 'none';
-        return;
-      }
-
+      if (!product) { document.getElementById('resultCard').style.display = 'none'; return; }
       const { ek, name } = product;
       const qty = parseInt(document.getElementById('qty').value) || 0;
       const multi = parseFloat(document.getElementById('multi').value) || 2.5;
@@ -551,202 +406,74 @@
       document.getElementById('resPrint').textContent = `${methodLabel}: ${printSides}× ${costPerSide} € = ${printCost.toFixed(2)} €`;
       document.getElementById('resMulti').textContent = `${multi.toFixed(1)}×`;
       document.getElementById('resVk').textContent = `${vkBrutto.toFixed(2)} €`;
-      document.getElementById('resDiscount').innerHTML = discountPct > 0
-        ? `<span class="badge badge-orange">-${discountPct}%</span>`
-        : `<span class="badge badge-green">Kein Rabatt</span>`;
+      document.getElementById('resDiscount').innerHTML = discountPct > 0 ? `<span class="badge badge-orange">-${discountPct}%</span>` : `<span class="badge badge-green">Kein Rabatt</span>`;
       document.getElementById('resVkDiscount').textContent = `${vkAfterDiscount.toFixed(2)} €`;
       document.getElementById('resMargin').textContent = `${profitPerUnit.toFixed(2)} € (${marginPct.toFixed(0)}%)`;
       document.getElementById('resTotal').textContent = `${total.toFixed(2)} €`;
       document.getElementById('resProfit').textContent = `${profitTotal.toFixed(2)} €`;
       document.getElementById('resProfitPct').textContent = `${marginPct.toFixed(1)}%`;
-
       const bar = document.getElementById('marginBar');
-      const clampedPct = Math.min(Math.max(marginPct, 0), 100);
-      bar.style.width = `${clampedPct}%`;
+      bar.style.width = `${Math.min(Math.max(marginPct,0),100)}%`;
       bar.style.background = marginPct > 50 ? 'var(--green)' : marginPct > 30 ? 'var(--accent2)' : 'var(--accent)';
     }
 
+    // --- COPY ---
     function copyOffer() {
-      const product = getEkAndName();
-      if (!product) return;
+      const product = getEkAndName(); if (!product) return;
       const qty = parseInt(document.getElementById('qty').value) || 0;
       const multi = parseFloat(document.getElementById('multi').value) || 2.5;
-      const costPerSide = METHOD_CONFIG[printMethod].costPerSide; const printCost = printSides * costPerSide;
+      const costPerSide = METHOD_CONFIG[printMethod].costPerSide;
+      const printCost = printSides * costPerSide;
       const vk = (product.ek * multi) + printCost;
-      const disc = getDiscount(qty);
-      const vkDisc = vk * (1 - disc / 100);
+      const disc = getDiscount(qty); const vkDisc = vk * (1 - disc / 100);
       const total = vkDisc * qty;
-
-      const text = `📋 Angebot
-━━━━━━━━━━━━━━━
-Produkt: ${product.name}
-Menge: ${qty} Stück
-Veredelung: ${METHOD_CONFIG[printMethod].label}, ${printSides} Seite(n)
-${disc > 0 ? `Staffelrabatt: ${disc}%\n` : ''}
-Stückpreis: ${vkDisc.toFixed(2)} € brutto
-━━━━━━━━━━━━━━━
-Gesamt: ${total.toFixed(2)} € brutto
-
-Preise inkl. MwSt.`;
-
-      navigator.clipboard.writeText(text).then(() => {
-        const btn = document.querySelector('.share-btn.primary');
-        btn.textContent = '✅ Kopiert!';
-        setTimeout(() => btn.textContent = '📋 Angebot kopieren', 2000);
-      });
+      const text = `📋 Angebot\n━━━━━━━━━━━━━━━\nProdukt: ${product.name}\nMenge: ${qty} Stück\nVeredelung: ${METHOD_CONFIG[printMethod].label}, ${printSides} Seite(n)\n${disc > 0 ? `Staffelrabatt: ${disc}%\n` : ''}\nStückpreis: ${vkDisc.toFixed(2)} € brutto\n━━━━━━━━━━━━━━━\nGesamt: ${total.toFixed(2)} € brutto\n\nPreise inkl. MwSt.`;
+      navigator.clipboard.writeText(text).then(() => { const b = document.querySelector('.share-btn.primary'); b.textContent = '✅ Kopiert!'; setTimeout(() => b.textContent = '📋 Angebot kopieren', 2000); });
     }
 
     function copyInternal() {
-      const product = getEkAndName();
-      if (!product) return;
+      const product = getEkAndName(); if (!product) return;
       const qty = parseInt(document.getElementById('qty').value) || 0;
       const multi = parseFloat(document.getElementById('multi').value) || 2.5;
-      const costPerSide = METHOD_CONFIG[printMethod].costPerSide; const printCost = printSides * costPerSide;
+      const costPerSide = METHOD_CONFIG[printMethod].costPerSide;
+      const printCost = printSides * costPerSide;
       const vk = (product.ek * multi) + printCost;
-      const disc = getDiscount(qty);
-      const vkDisc = vk * (1 - disc / 100);
-      const total = vkDisc * qty;
-      const profit = (vkDisc - product.ek) * qty;
-
-      const text = `🔒 Interne Kalkulation
-━━━━━━━━━━━━━━━
-Produkt: ${product.name}
-EK Netto: ${product.ek.toFixed(2)} €
-Menge: ${qty} | Veredelung: ${METHOD_CONFIG[printMethod].label} ${printSides}× | Multi: ${multi}×
-VK Brutto: ${vk.toFixed(2)} € → nach Rabatt (${disc}%): ${vkDisc.toFixed(2)} €
-Gesamt: ${total.toFixed(2)} €
-Gewinn: ${profit.toFixed(2)} € (${((vkDisc - product.ek) / vkDisc * 100).toFixed(1)}%)`;
-
-      navigator.clipboard.writeText(text).then(() => {
-        const btn = document.querySelector('.share-btn.secondary');
-        btn.textContent = '✅ Kopiert!';
-        setTimeout(() => btn.textContent = '🔒 Intern kopieren', 2000);
-      });
+      const disc = getDiscount(qty); const vkDisc = vk * (1 - disc / 100);
+      const total = vkDisc * qty; const profit = (vkDisc - product.ek) * qty;
+      const text = `🔒 Interne Kalkulation\n━━━━━━━━━━━━━━━\nProdukt: ${product.name}\nEK Netto: ${product.ek.toFixed(2)} €\nMenge: ${qty} | Veredelung: ${METHOD_CONFIG[printMethod].label} ${printSides}× | Multi: ${multi}×\nVK Brutto: ${vk.toFixed(2)} € → nach Rabatt (${disc}%): ${vkDisc.toFixed(2)} €\nGesamt: ${total.toFixed(2)} €\nGewinn: ${profit.toFixed(2)} € (${((vkDisc - product.ek) / vkDisc * 100).toFixed(1)}%)`;
+      navigator.clipboard.writeText(text).then(() => { const b = document.querySelector('.share-btn.secondary'); b.textContent = '✅ Kopiert!'; setTimeout(() => b.textContent = '🔒 Intern kopieren', 2000); });
     }
 
+    // --- PDF ---
     function downloadPDF() {
-      const product = getEkAndName();
-      if (!product) return;
+      const product = getEkAndName(); if (!product) return;
       const qty = parseInt(document.getElementById('qty').value) || 0;
       const multi = parseFloat(document.getElementById('multi').value) || 2.5;
-      const costPerSide = METHOD_CONFIG[printMethod].costPerSide; const printCost = printSides * costPerSide;
+      const costPerSide = METHOD_CONFIG[printMethod].costPerSide;
+      const printCost = printSides * costPerSide;
       const vk = (product.ek * multi) + printCost;
-      const disc = getDiscount(qty);
-      const vkDisc = vk * (1 - disc / 100);
+      const disc = getDiscount(qty); const vkDisc = vk * (1 - disc / 100);
       const total = vkDisc * qty;
       const today = new Date().toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
       const nr = `ANG-${Date.now().toString().slice(-6)}`;
+      const methodLabel = METHOD_CONFIG[printMethod].label;
 
       const w = window.open('', '_blank');
       w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Angebot ${nr}</title>
-<style>
-  @page { size: A4; margin: 0; }
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: -apple-system, 'Helvetica Neue', Arial, sans-serif; color: #1a1a1a; padding: 60px; max-width: 800px; margin: 0 auto; }
-  .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 50px; padding-bottom: 30px; border-bottom: 3px solid #e63946; }
-  .brand img { height: 50px; margin-bottom: 8px; }
-  .brand h1 { font-size: 28px; font-weight: 800; letter-spacing: -0.5px; }
-  .brand h1 span { color: #e63946; }
-  .brand p { font-size: 12px; color: #666; margin-top: 4px; }
-  .meta { text-align: right; font-size: 13px; color: #555; line-height: 1.8; }
-  .meta strong { color: #1a1a1a; }
-  .section-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: #999; margin-bottom: 16px; }
-  table { width: 100%; border-collapse: collapse; margin-bottom: 40px; }
-  th { text-align: left; padding: 12px 16px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #999; border-bottom: 2px solid #eee; }
-  td { padding: 14px 16px; font-size: 14px; border-bottom: 1px solid #f0f0f0; }
-  .right { text-align: right; }
-  .total-row td { border-bottom: none; padding-top: 20px; }
-  .total-label { font-size: 16px; font-weight: 700; }
-  .total-value { font-size: 24px; font-weight: 800; color: #e63946; }
-  .discount-badge { display: inline-block; background: #fff3e0; color: #e65100; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 700; }
-  .notes { margin-top: 40px; padding: 20px; background: #f9f9f9; border-radius: 8px; font-size: 12px; color: #666; line-height: 1.6; }
-  .footer { margin-top: 60px; text-align: center; font-size: 11px; color: #bbb; padding-top: 20px; border-top: 1px solid #eee; }
-  @media print { body { padding: 40px; } .no-print { display: none; } }
-</style></head><body>
-
-<div class="header">
-  <div class="brand">
-    <img src="https://localprintdepartment.com/cdn/shop/files/LPD_Logo_BLK.png?v=1706191565&width=600" alt="Local Print Department">
-    <p>Textildruck & Print on Demand</p>
-  </div>
-  <div class="meta">
-    <strong>Angebot ${nr}</strong><br>
-    Datum: ${today}<br>
-    Gültig: 14 Tage
-  </div>
-</div>
-
+<style>@page{size:A4;margin:0}*{margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;color:#1a1a1a;padding:60px;max-width:800px;margin:0 auto}.header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:50px;padding-bottom:30px;border-bottom:3px solid #e63946}.brand img{height:50px;margin-bottom:8px}.brand p{font-size:12px;color:#666;margin-top:4px}.meta{text-align:right;font-size:13px;color:#555;line-height:1.8}.meta strong{color:#1a1a1a}.section-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#999;margin-bottom:16px}table{width:100%;border-collapse:collapse;margin-bottom:40px}th{text-align:left;padding:12px 16px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#999;border-bottom:2px solid #eee}td{padding:14px 16px;font-size:14px;border-bottom:1px solid #f0f0f0}.right{text-align:right}.total-row td{border-bottom:none;padding-top:20px}.total-label{font-size:16px;font-weight:700}.total-value{font-size:24px;font-weight:800;color:#e63946}.discount-badge{display:inline-block;background:#fff3e0;color:#e65100;padding:2px 8px;border-radius:4px;font-size:12px;font-weight:700}.notes{margin-top:40px;padding:20px;background:#f9f9f9;border-radius:8px;font-size:12px;color:#666;line-height:1.6}.footer{margin-top:60px;text-align:center;font-size:11px;color:#bbb;padding-top:20px;border-top:1px solid #eee}@media print{body{padding:40px}.no-print{display:none}}</style></head><body>
+<div class="header"><div class="brand"><img src="https://localprintdepartment.com/cdn/shop/files/LPD_Logo_BLK.png?v=1706191565&width=600" alt="LPD"><p>Textildruck & Print on Demand</p></div><div class="meta"><strong>Angebot ${nr}</strong><br>Datum: ${today}<br>Gültig: 14 Tage</div></div>
 <p class="section-title">Angebotsdetails</p>
-<table>
-  <thead>
-    <tr>
-      <th>Produkt</th>
-      <th>Druck</th>
-      <th class="right">Stückpreis</th>
-      <th class="right">Menge</th>
-      <th class="right">Gesamt</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><strong>${product.name}</strong></td>
-      <td>${METHOD_CONFIG[printMethod].label}, ${printSides} Seite${printSides > 1 ? 'n' : ''}</td>
-      <td class="right">${vkDisc.toFixed(2)} €</td>
-      <td class="right">${qty}</td>
-      <td class="right"><strong>${total.toFixed(2)} €</strong></td>
-    </tr>
-    ${disc > 0 ? `<tr><td colspan="4" style="color:#666">Inkl. Staffelrabatt</td><td class="right"><span class="discount-badge">-${disc}%</span></td></tr>` : ''}
-  </tbody>
-</table>
-
-<table>
-  <tbody>
-    <tr class="total-row">
-      <td class="total-label">Gesamtbetrag (brutto)</td>
-      <td class="right total-value">${total.toFixed(2)} €</td>
-    </tr>
-  </tbody>
-</table>
-
-${disc > 0 ? `
-<p class="section-title">Staffelrabatte</p>
-<table>
-  <thead><tr><th>Ab Menge</th><th class="right">Rabatt</th></tr></thead>
-  <tbody>
-    <tr><td>6 Stück</td><td class="right">10%</td></tr>
-    <tr><td>10 Stück</td><td class="right">15%</td></tr>
-    <tr><td>15 Stück</td><td class="right">20%</td></tr>
-    <tr><td>20 Stück</td><td class="right">25%</td></tr>
-    <tr><td>25 Stück</td><td class="right">30%</td></tr>
-    <tr><td>30 Stück</td><td class="right">35%</td></tr>
-    <tr><td>50 Stück</td><td class="right">40%</td></tr>
-    <tr><td>100 Stück</td><td class="right">50%</td></tr>
-  </tbody>
-</table>` : ''}
-
-<div class="notes">
-  <strong>Hinweise:</strong><br>
-  • Alle Preise verstehen sich in Euro inkl. MwSt.<br>
-  • Dieses Angebot ist 14 Tage gültig.<br>
-  • Druckkosten beinhalten Einrichtung und Druck.<br>
-  • Bei größeren Mengen sind weitere Rabatte möglich.
-</div>
-
-<div class="footer">
-  Local Print Department · Textildruck & Print on Demand
-</div>
-
-<div class="no-print" style="text-align:center;margin-top:30px">
-  <button onclick="window.print()" style="padding:12px 32px;background:#e63946;color:white;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer">
-    📄 Als PDF speichern / Drucken
-  </button>
-</div>
-
+<table><thead><tr><th>Produkt</th><th>Veredelung</th><th class="right">Stückpreis</th><th class="right">Menge</th><th class="right">Gesamt</th></tr></thead><tbody>
+<tr><td><strong>${product.name}</strong></td><td>${methodLabel}, ${printSides} Seite${printSides>1?'n':''}</td><td class="right">${vkDisc.toFixed(2)} €</td><td class="right">${qty}</td><td class="right"><strong>${total.toFixed(2)} €</strong></td></tr>
+${disc > 0 ? `<tr><td colspan="4" style="color:#666">Inkl. Staffelrabatt</td><td class="right"><span class="discount-badge">-${disc}%</span></td></tr>` : ''}
+</tbody></table>
+<table><tbody><tr class="total-row"><td class="total-label">Gesamtbetrag (brutto)</td><td class="right total-value">${total.toFixed(2)} €</td></tr></tbody></table>
+<div class="notes"><strong>Hinweise:</strong><br>• Alle Preise verstehen sich in Euro inkl. MwSt.<br>• Dieses Angebot ist 14 Tage gültig.<br>• Veredelungskosten beinhalten Einrichtung und Druck.<br>• Bei größeren Mengen sind weitere Rabatte möglich.</div>
+<div class="footer">Local Print Department · Textildruck & Print on Demand</div>
+<div class="no-print" style="text-align:center;margin-top:30px"><button onclick="window.print()" style="padding:12px 32px;background:#e63946;color:white;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer">📄 Als PDF speichern / Drucken</button></div>
 </body></html>`);
       w.document.close();
     }
-
-    init();
   </script>
 </body>
 </html>
