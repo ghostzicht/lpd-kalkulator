@@ -146,7 +146,8 @@
         <div class="result-row"><span class="label">× Multiplikator</span><span class="value" id="resMulti">—</span></div>
         <div class="result-row" style="border-bottom:1px solid rgba(255,255,255,0.15)"><span class="label">= VK Brutto (Stück)</span><span class="value" id="resVk">—</span></div>
         <div class="result-row discount"><span class="label">Staffelrabatt</span><span class="value" id="resDiscount">—</span></div>
-        <div class="result-row"><span class="label">VK nach Rabatt</span><span class="value" id="resVkDiscount">—</span></div>
+        <div class="result-row"><span class="label">VK nach Rabatt (brutto)</span><span class="value" id="resVkDiscount">—</span></div>
+        <div class="result-row"><span class="label">VK netto</span><span class="value" id="resVkNetto">—</span></div>
         <div class="result-row unit"><span class="label">Marge pro Stück</span><span class="value" id="resMargin">—</span></div>
         <div class="result-row total"><span class="label">Gesamtpreis</span><span class="value" id="resTotal">—</span></div>
         <div class="margin-bar"><div class="margin-bar-fill" id="marginBar"></div></div>
@@ -400,9 +401,10 @@
       const discountPct = getDiscount(qty);
       const vkAfterDiscount = vkBrutto * (1 - discountPct / 100);
       const total = vkAfterDiscount * qty;
-      const profitPerUnit = vkAfterDiscount - ek - printCostEk;
+      const vkNetto = vkAfterDiscount / 1.19;
+      const profitPerUnit = vkNetto - ek - printCostEk;
       const profitTotal = profitPerUnit * qty;
-      const marginPct = (profitPerUnit / vkAfterDiscount * 100);
+      const marginPct = (profitPerUnit / vkNetto * 100);
 
       document.getElementById('resultCard').style.display = 'block';
       document.getElementById('resEk').textContent = `${ek.toFixed(2)} €`;
@@ -411,6 +413,7 @@
       document.getElementById('resVk').textContent = `${vkBrutto.toFixed(2)} €`;
       document.getElementById('resDiscount').innerHTML = discountPct > 0 ? `<span class="badge badge-orange">-${discountPct}%</span>` : `<span class="badge badge-green">Kein Rabatt</span>`;
       document.getElementById('resVkDiscount').textContent = `${vkAfterDiscount.toFixed(2)} €`;
+      document.getElementById('resVkNetto').textContent = `${vkNetto.toFixed(2)} €`;
       document.getElementById('resMargin').textContent = `${profitPerUnit.toFixed(2)} € (${marginPct.toFixed(0)}%)`;
       document.getElementById('resTotal').textContent = `${total.toFixed(2)} €`;
       document.getElementById('resPrintEk').textContent = `${printCostEk.toFixed(2)} € × ${qty} = ${(printCostEk * qty).toFixed(2)} €`;
@@ -447,8 +450,8 @@
       const printCostEk = printSides * ekPerSide;
       const vk = (product.ek * multi) + printCostVk;
       const disc = getDiscount(qty); const vkDisc = vk * (1 - disc / 100);
-      const total = vkDisc * qty; const profit = (vkDisc - product.ek - printCostEk) * qty;
-      const text = `🔒 Interne Kalkulation\n━━━━━━━━━━━━━━━\nProdukt: ${product.name}\nEK Netto: ${product.ek.toFixed(2)} €\nMenge: ${qty} | Veredelung: ${METHOD_CONFIG[printMethod].label} ${printSides}× | Multi: ${multi}×\nVK Brutto: ${vk.toFixed(2)} € → nach Rabatt (${disc}%): ${vkDisc.toFixed(2)} €\nGesamt: ${total.toFixed(2)} €\nGewinn: ${profit.toFixed(2)} € (${((vkDisc - product.ek) / vkDisc * 100).toFixed(1)}%)`;
+      const total = vkDisc * qty; const vkNettoC = vkDisc / 1.19; const profit = (vkNettoC - product.ek - printCostEk) * qty;
+      const text = `🔒 Interne Kalkulation\n━━━━━━━━━━━━━━━\nProdukt: ${product.name}\nEK Netto: ${product.ek.toFixed(2)} €\nMenge: ${qty} | Veredelung: ${METHOD_CONFIG[printMethod].label} ${printSides}× | Multi: ${multi}×\nVK Brutto: ${vkDisc.toFixed(2)} € (Netto: ${(vkDisc/1.19).toFixed(2)} €)\nGesamt: ${total.toFixed(2)} €\nGewinn: ${profit.toFixed(2)} € (${((vkDisc - product.ek) / vkDisc * 100).toFixed(1)}%)`;
       navigator.clipboard.writeText(text).then(() => { const b = document.querySelector('.share-btn.secondary'); b.textContent = '✅ Kopiert!'; setTimeout(() => b.textContent = '🔒 Intern kopieren', 2000); });
     }
 
