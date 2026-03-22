@@ -65,6 +65,14 @@
     .search-item .meta { font-size: 0.75rem; color: var(--muted); text-align: right; }
     .search-item .meta .price { color: var(--accent2); font-weight: 600; font-size: 0.85rem; }
     .search-empty { padding: 16px; text-align: center; color: var(--muted); font-size: 0.85rem; }
+    .cart-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); gap: 8px; }
+    .cart-item:last-of-type { border-bottom: none; }
+    .cart-item .cart-info { flex: 1; min-width: 0; }
+    .cart-item .cart-name { font-size: 0.85rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .cart-item .cart-details { font-size: 0.7rem; color: var(--muted); margin-top: 2px; }
+    .cart-item .cart-price { font-size: 0.9rem; font-weight: 700; color: var(--accent2); white-space: nowrap; }
+    .cart-item .cart-remove { background: none; border: none; color: var(--accent); font-size: 1rem; cursor: pointer; padding: 4px 8px; opacity: 0.6; transition: opacity 0.2s; }
+    .cart-item .cart-remove:hover { opacity: 1; }
     footer { text-align: center; padding: 20px 0; font-size: 0.7rem; color: #444; }
     footer a { color: var(--accent); text-decoration: none; }
 
@@ -221,6 +229,26 @@
         </div>
       </div>
 
+      <!-- ADD TO CART -->
+      <div class="btn-row">
+        <button class="share-btn primary" style="background:#f59e0b" onclick="addToCart()">➕ Zum Angebot hinzufügen</button>
+      </div>
+
+      <!-- CART -->
+      <div class="card" id="cartCard" style="display:none">
+        <div class="card-title" style="display:flex;justify-content:space-between;align-items:center">
+          <span>🛒 Angebot (<span id="cartCount">0</span> Positionen)</span>
+          <button onclick="clearCart()" style="background:none;border:none;color:var(--accent);font-size:0.7rem;cursor:pointer;text-transform:uppercase;font-weight:700">Alle entfernen</button>
+        </div>
+        <div id="cartItems"></div>
+        <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <span style="font-size:1rem;font-weight:700">Gesamtsumme</span>
+            <span style="font-size:1.3rem;font-weight:800;color:var(--green)" id="cartTotal">0,00 €</span>
+          </div>
+        </div>
+      </div>
+
       <!-- ACTION BUTTONS -->
       <div class="btn-row">
         <button class="share-btn primary" onclick="copyOffer()">📋 Angebot kopieren</button>
@@ -319,6 +347,7 @@
     let highlightIdx = -1;
     let selectedCustomer = null;
     let selectedProduct = null;
+    let cart = [];
 
     const METHOD_CONFIG = {
       dtg:       { label: 'DTG-Druck', vkPerSide: 8, ekPerSide: 3.77 },
@@ -829,37 +858,38 @@ CREATE POLICY "Allow all operations for authenticated users" ON quotes
 
     // COPY FUNCTIONS
     function copyOffer() {
-      const product = getEkAndName();
-      if (!product) return;
+      let items = [];
+      if (cart.length > 0) {
+        items = cart;
+      } else {
+        const product = getEkAndName();
+        if (!product) return;
+        const qty = parseInt(document.getElementById('qty').value) || 0;
+        const multi = parseFloat(document.getElementById('multi').value) || 2.5;
+        const vkPerSide = METHOD_CONFIG[printMethod].vkPerSide;
+        const printCostVk = printSides * vkPerSide;
+        const vk = (product.ek * multi) + printCostVk;
+        const disc = getDiscount(qty);
+        const vkDisc = vk * (1 - disc / 100);
+        items = [{ name: product.name, qty, vkDisc, total: vkDisc * qty, disc, methodLabel: METHOD_CONFIG[printMethod].label, printSides }];
+      }
 
-      const qty = parseInt(document.getElementById('qty').value) || 0;
-      const multi = parseFloat(document.getElementById('multi').value) || 2.5;
-      const vkPerSide = METHOD_CONFIG[printMethod].vkPerSide;
-      const printCostVk = printSides * vkPerSide;
-      const vk = (product.ek * multi) + printCostVk;
-      const disc = getDiscount(qty);
-      const vkDisc = vk * (1 - disc / 100);
-      const total = vkDisc * qty;
-
+      const grandTotal = items.reduce((s, i) => s + i.total, 0);
       let text = `📋 Angebot\n━━━━━━━━━━━━━━━\n`;
-      
       if (selectedCustomer) {
-        text += `Kunde: ${selectedCustomer.company || `${selectedCustomer.first_name} ${selectedCustomer.last_name}`}\n`;
+        text += `Kunde: ${selectedCustomer.company || `${selectedCustomer.first_name} ${selectedCustomer.last_name}`}\n\n`;
       }
-      
-      text += `Produkt: ${product.name}\nMenge: ${qty} Stück\nVeredelung: ${METHOD_CONFIG[printMethod].label}, ${printSides} Seite(n)\n`;
-      
-      if (disc > 0) {
-        text += `Staffelrabatt: ${disc}%\n`;
-      }
-      
-      text += `\nStückpreis: ${vkDisc.toFixed(2)} € brutto\n━━━━━━━━━━━━━━━\nGesamt: ${total.toFixed(2)} € brutto\n\nPreise inkl. MwSt.`;
+      items.forEach((item, idx) => {
+        text += `${idx+1}. ${item.name}\n   ${item.qty}× · ${item.methodLabel}, ${item.printSides} Seite(n)`;
+        if (item.disc > 0) text += ` · Rabatt: ${item.disc}%`;
+        text += `\n   Stückpreis: ${item.vkDisc.toFixed(2)} € · Gesamt: ${item.total.toFixed(2)} €\n\n`;
+      });
+      text += `━━━━━━━━━━━━━━━\nGesamtbetrag: ${grandTotal.toFixed(2)} € brutto\n\nPreise inkl. MwSt.`;
 
       navigator.clipboard.writeText(text).then(() => {
-        const b = document.querySelector('.share-btn.primary');
-        const original = b.textContent;
+        const b = document.querySelector('[onclick="copyOffer()"]');
         b.textContent = '✅ Kopiert!';
-        setTimeout(() => b.textContent = original, 2000);
+        setTimeout(() => b.textContent = '📋 Angebot kopieren', 2000);
       });
     }
 
@@ -888,6 +918,93 @@ CREATE POLICY "Allow all operations for authenticated users" ON quotes
         b.textContent = '✅ Kopiert!';
         setTimeout(() => b.textContent = original, 2000);
       });
+    }
+
+    // CART MANAGEMENT
+    function addToCart() {
+      const product = getEkAndName();
+      if (!product) { alert('Bitte zuerst ein Produkt wählen.'); return; }
+      const qty = parseInt(document.getElementById('qty').value) || 0;
+      if (qty <= 0) { alert('Bitte eine Menge eingeben.'); return; }
+      const multi = parseFloat(document.getElementById('multi').value) || 2.5;
+      const vkPerSide = METHOD_CONFIG[printMethod].vkPerSide;
+      const ekPerSide = METHOD_CONFIG[printMethod].ekPerSide;
+      const printCostVk = printSides * vkPerSide;
+      const printCostEk = printSides * ekPerSide;
+      const vk = (product.ek * multi) + printCostVk;
+      const disc = getDiscount(qty);
+      const vkDisc = vk * (1 - disc / 100);
+      const total = vkDisc * qty;
+      const vkNetto = vkDisc / 1.19;
+      const profitPerUnit = vkNetto - product.ek - (printSides * ekPerSide);
+
+      cart.push({
+        id: Date.now(),
+        productId: product.id,
+        name: product.name,
+        ek: product.ek,
+        qty,
+        printMethod,
+        printSides,
+        multi,
+        disc,
+        vkDisc,
+        total,
+        profitPerUnit,
+        methodLabel: METHOD_CONFIG[printMethod].label
+      });
+
+      renderCart();
+      // Animate button
+      const btn = document.querySelector('[onclick="addToCart()"]');
+      btn.textContent = '✅ Hinzugefügt!';
+      setTimeout(() => { btn.textContent = '➕ Zum Angebot hinzufügen'; }, 1500);
+    }
+
+    function removeFromCart(id) {
+      cart = cart.filter(item => item.id !== id);
+      renderCart();
+    }
+
+    function clearCart() {
+      if (cart.length === 0) return;
+      if (!confirm('Alle Positionen entfernen?')) return;
+      cart = [];
+      renderCart();
+    }
+
+    function renderCart() {
+      const cartCard = document.getElementById('cartCard');
+      const cartItems = document.getElementById('cartItems');
+      const cartCount = document.getElementById('cartCount');
+      const cartTotal = document.getElementById('cartTotal');
+
+      if (cart.length === 0) {
+        cartCard.style.display = 'none';
+        return;
+      }
+
+      cartCard.style.display = 'block';
+      cartCount.textContent = cart.length;
+
+      let grandTotal = 0;
+      cartItems.innerHTML = cart.map((item, i) => {
+        grandTotal += item.total;
+        return `<div class="cart-item">
+          <div class="cart-info">
+            <div class="cart-name">${i + 1}. ${item.name}</div>
+            <div class="cart-details">${item.qty}× · ${item.methodLabel} ${item.printSides}S · ${item.disc > 0 ? '-' + item.disc + '% ' : ''}${item.vkDisc.toFixed(2)} €/Stk</div>
+          </div>
+          <span class="cart-price">${item.total.toFixed(2)} €</span>
+          <button class="cart-remove" onclick="removeFromCart(${item.id})">✕</button>
+        </div>`;
+      }).join('');
+
+      cartTotal.textContent = grandTotal.toFixed(2) + ' €';
+    }
+
+    function getCartTotal() {
+      return cart.reduce((sum, item) => sum + item.total, 0);
     }
 
     // CONFIRM OFFER
@@ -944,24 +1061,37 @@ CREATE POLICY "Allow all operations for authenticated users" ON quotes
 
     // PDF GENERATION
     function downloadPDF() {
-      const product = getEkAndName();
-      if (!product) return;
+      // Build items list: use cart if items exist, otherwise use current single product
+      let items = [];
+      if (cart.length > 0) {
+        items = cart.map(c => ({
+          name: c.name, qty: c.qty, vkDisc: c.vkDisc, total: c.total,
+          disc: c.disc, methodLabel: c.methodLabel, printSides: c.printSides, ek: c.ek
+        }));
+      } else {
+        const product = getEkAndName();
+        if (!product) return;
+        const qty = parseInt(document.getElementById('qty').value) || 0;
+        const multi = parseFloat(document.getElementById('multi').value) || 2.5;
+        const vkPerSide = METHOD_CONFIG[printMethod].vkPerSide;
+        const printCostVk = printSides * vkPerSide;
+        const vk = (product.ek * multi) + printCostVk;
+        const disc = getDiscount(qty);
+        const vkDisc = vk * (1 - disc / 100);
+        const total = vkDisc * qty;
+        items = [{ name: product.name, qty, vkDisc, total, disc, methodLabel: METHOD_CONFIG[printMethod].label, printSides, ek: product.ek }];
+      }
 
-      const qty = parseInt(document.getElementById('qty').value) || 0;
-      const multi = parseFloat(document.getElementById('multi').value) || 2.5;
-      const vkPerSide = METHOD_CONFIG[printMethod].vkPerSide;
-      const printCostVk = printSides * vkPerSide;
-      const vk = (product.ek * multi) + printCostVk;
-      const disc = getDiscount(qty);
-      const vkDisc = vk * (1 - disc / 100);
-      const total = vkDisc * qty;
+      if (items.length === 0) return;
+
+      const grandTotal = items.reduce((sum, i) => sum + i.total, 0);
       const today = new Date().toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
       const year = new Date().getFullYear();
       const nr = `ANG-${year}-${String(Date.now()).slice(-4)}`;
-      const methodLabel = METHOD_CONFIG[printMethod].label;
 
       // Save quote to database (non-blocking, fire-and-forget)
-      saveQuote(product, qty, vkDisc, total, nr).catch(e => console.warn('Quote save skipped:', e.message));
+      const firstItem = items[0];
+      saveQuote({ name: items.map(i=>i.name).join(', '), ek: firstItem.ek, id: null }, firstItem.qty, firstItem.vkDisc, grandTotal, nr).catch(e => console.warn('Quote save skipped:', e.message));
 
       // Generate PDF — window.open MUST be synchronous (not after await) or mobile browsers block it
       let customerSection = '';
@@ -995,11 +1125,11 @@ CREATE POLICY "Allow all operations for authenticated users" ON quotes
 <div class="header"><div class="brand"><img src="https://localprintdepartment.com/cdn/shop/files/LPD_Logo_BLK.png?v=1706191565&width=600" alt="LPD"><p>Textildruck & Print on Demand</p></div><div class="meta"><strong>Angebot ${nr}</strong><br>Datum: ${today}<br>Gültig: 14 Tage</div></div>
 ${customerSection}
 <p class="section-title">Angebotsdetails</p>
-<table><thead><tr><th>Produkt</th><th>Veredelung</th><th class="right">Stückpreis</th><th class="right">Menge</th><th class="right">Gesamt</th></tr></thead><tbody>
-<tr><td><strong>${product.name}</strong></td><td>${methodLabel}, ${printSides} Seite${printSides>1?'n':''}</td><td class="right">${vkDisc.toFixed(2)} €</td><td class="right">${qty}</td><td class="right"><strong>${total.toFixed(2)} €</strong></td></tr>
-${disc > 0 ? `<tr><td colspan="4" style="color:#666">Inkl. Staffelrabatt</td><td class="right"><span class="discount-badge">-${disc}%</span></td></tr>` : ''}
+<table><thead><tr><th>Pos.</th><th>Produkt</th><th>Veredelung</th><th class="right">Stückpreis</th><th class="right">Menge</th><th class="right">Gesamt</th></tr></thead><tbody>
+${items.map((item, idx) => `<tr><td>${idx+1}</td><td><strong>${item.name}</strong></td><td>${item.methodLabel}, ${item.printSides} Seite${item.printSides>1?'n':''}</td><td class="right">${item.vkDisc.toFixed(2)} €</td><td class="right">${item.qty}</td><td class="right"><strong>${item.total.toFixed(2)} €</strong></td></tr>
+${item.disc > 0 ? `<tr><td></td><td colspan="4" style="color:#666">Inkl. Staffelrabatt</td><td class="right"><span class="discount-badge">-${item.disc}%</span></td></tr>` : ''}`).join('')}
 </tbody></table>
-<table><tbody><tr class="total-row"><td class="total-label">Gesamtbetrag (brutto)</td><td class="right total-value">${total.toFixed(2)} €</td></tr></tbody></table>
+<table><tbody><tr class="total-row"><td class="total-label">Gesamtbetrag (brutto)</td><td class="right total-value">${grandTotal.toFixed(2)} €</td></tr></tbody></table>
 <div class="notes"><strong>Hinweise:</strong><br>• Alle Preise verstehen sich in Euro inkl. MwSt.<br>• Dieses Angebot ist 14 Tage gültig.<br>• Veredelungskosten beinhalten Einrichtung und Druck.<br>• Bei größeren Mengen sind weitere Rabatte möglich.</div>
 <div class="footer">Local Print Department · Textildruck & Print on Demand</div>
 <div class="no-print" style="text-align:center;margin-top:30px"><button onclick="window.print()" style="padding:12px 32px;background:#e63946;color:white;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer">📄 Als PDF speichern / Drucken</button></div>
