@@ -8,7 +8,7 @@
     :root {
       --bg: #0a0a0a; --card: #141414; --border: #2a2a2a;
       --text: #f5f5f5; --muted: #888; --accent: #e63946;
-      --accent2: #f4a261; --green: #2ecc71;
+      --accent2: #f4a261; --green: #2ecc71; --glass: rgba(255, 255, 255, 0.03);
     }
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 16px; }
@@ -17,10 +17,10 @@
     header img { height: 40px; margin-bottom: 8px; filter: invert(1); }
     header h1 { font-size: 1.5rem; font-weight: 800; letter-spacing: -0.02em; }
     header p { font-size: 0.75rem; color: var(--muted); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.08em; }
-    .card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 20px; margin-bottom: 12px; }
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 20px; margin-bottom: 12px; backdrop-filter: blur(10px); }
     .card-title { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 16px; }
     label { display: block; font-size: 0.75rem; font-weight: 600; color: var(--muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em; }
-    select, input[type="number"], input[type="password"], input[type="text"] {
+    select, input[type="number"], input[type="password"], input[type="text"], input[type="email"] {
       width: 100%; padding: 12px 14px; background: var(--bg); border: 1px solid var(--border); border-radius: 10px;
       color: var(--text); font-size: 1rem; font-weight: 500; outline: none; transition: border-color 0.2s; -webkit-appearance: none; margin-bottom: 14px;
     }
@@ -70,28 +70,70 @@
 
     /* LOGIN */
     #loginScreen { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 80vh; }
-    #loginScreen .card { width: 100%; max-width: 380px; }
+    #loginScreen .card { width: 100%; max-width: 380px; background: var(--glass); backdrop-filter: blur(20px); }
     .login-btn { width: 100%; padding: 14px; background: var(--accent); border: none; border-radius: 12px; color: white; font-size: 1rem; font-weight: 700; cursor: pointer; text-transform: uppercase; letter-spacing: 0.05em; }
     .login-btn:active { opacity: 0.8; }
+    .login-btn:disabled { opacity: 0.5; cursor: not-allowed; }
     .login-error { color: var(--accent); font-size: 0.8rem; text-align: center; margin-top: 8px; display: none; }
+    .login-success { color: var(--green); font-size: 0.8rem; text-align: center; margin-top: 8px; display: none; }
     #appScreen { display: none; }
+
+    /* CUSTOMER SELECT */
+    .customer-display { background: rgba(46,204,113,0.08); border: 1px solid rgba(46,204,113,0.2); border-radius: 8px; padding: 12px; margin-bottom: 14px; display: none; }
+    .customer-display .name { font-weight: 600; color: var(--green); margin-bottom: 4px; }
+    .customer-display .details { font-size: 0.8rem; color: var(--muted); }
+    .customer-display .remove { float: right; color: var(--accent); cursor: pointer; font-weight: 700; }
+
+    /* MODAL */
+    .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; display: none; justify-content: center; align-items: center; padding: 20px; }
+    .modal-content { background: var(--card); border-radius: 16px; padding: 24px; width: 100%; max-width: 400px; max-height: 90vh; overflow-y: auto; }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .modal-close { background: none; border: none; color: var(--muted); font-size: 1.5rem; cursor: pointer; }
+
+    /* QUOTES HISTORY */
+    .quote-item { background: var(--glass); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 12px; cursor: pointer; transition: all 0.2s; }
+    .quote-item:hover { border-color: var(--accent); }
+    .quote-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .quote-number { font-weight: 700; color: var(--accent); }
+    .quote-date { font-size: 0.8rem; color: var(--muted); }
+    .quote-customer { font-size: 0.9rem; margin-bottom: 4px; }
+    .quote-total { font-weight: 700; color: var(--green); font-size: 1.1rem; }
+
+    /* LOADING */
+    .loading { text-align: center; color: var(--muted); padding: 20px; }
+    .spinner { display: inline-block; width: 20px; height: 20px; border: 2px solid var(--border); border-radius: 50%; border-top-color: var(--accent); animation: spin 1s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* User info */
+    .user-info { position: absolute; top: 16px; right: 16px; color: var(--muted); font-size: 0.7rem; display: none; }
+    .logout-btn { background: none; border: 1px solid var(--border); color: var(--muted); padding: 4px 8px; border-radius: 6px; font-size: 0.7rem; cursor: pointer; margin-left: 8px; }
+    .logout-btn:hover { color: var(--accent); border-color: var(--accent); }
   </style>
 </head>
 <body>
   <div class="container">
+    <!-- USER INFO (when logged in) -->
+    <div class="user-info" id="userInfo">
+      <span id="userEmail"></span>
+      <button class="logout-btn" onclick="logout()">Logout</button>
+    </div>
+
     <!-- LOGIN SCREEN -->
     <div id="loginScreen">
       <header>
         <img src="https://localprintdepartment.com/cdn/shop/files/LPD_Logo_BLK.png?v=1706191565&width=600" alt="LPD">
         <h1>Angebots-Kalkulator</h1>
-        <p>Interner Zugang</p>
+        <p>Supabase Auth Login</p>
       </header>
       <div class="card">
         <div class="card-title">Anmelden</div>
+        <label>E-Mail</label>
+        <input type="email" id="loginEmail" placeholder="E-Mail Adresse..." value="maurice.roth@localprintdepartment.de">
         <label>Passwort</label>
         <input type="password" id="loginPassword" placeholder="Passwort eingeben..." onkeydown="if(event.key==='Enter')doLogin()">
-        <button class="login-btn" onclick="doLogin()">🔓 Einloggen</button>
-        <p class="login-error" id="loginError">Falsches Passwort</p>
+        <button class="login-btn" id="loginBtn" onclick="doLogin()">🔓 Einloggen</button>
+        <p class="login-error" id="loginError">Login fehlgeschlagen</p>
+        <p class="login-success" id="loginSuccess">Anmeldung erfolgreich!</p>
       </div>
     </div>
 
@@ -100,9 +142,28 @@
       <header>
         <img src="https://localprintdepartment.com/cdn/shop/files/LPD_Logo_BLK.png?v=1706191565&width=600" alt="LPD">
         <h1>Angebots-Kalkulator</h1>
-        <p id="productCountLabel">Produkte · Echte EK-Preise · Staffelrabatte</p>
+        <p id="productCountLabel">Lade Daten...</p>
       </header>
 
+      <!-- CUSTOMER SELECTION -->
+      <div class="card">
+        <div class="card-title">Kunde wählen</div>
+        <div class="customer-display" id="customerDisplay">
+          <span class="remove" onclick="removeCustomer()">✕</span>
+          <div class="name" id="customerName"></div>
+          <div class="details" id="customerDetails"></div>
+        </div>
+        <label>Kunde suchen</label>
+        <div style="position:relative">
+          <input type="text" id="customerSearchInput" placeholder="Firmenname oder Name eingeben..." oninput="onCustomerSearch()" onfocus="showCustomerDropdown()" autocomplete="off" style="padding-left:36px;margin-bottom:0">
+          <svg style="position:absolute;left:12px;top:13px;width:16px;height:16px;opacity:0.4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35" stroke-width="2" stroke-linecap="round"/></svg>
+          <div id="customerDropdown" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:50;margin-top:4px;background:var(--card);border:1px solid var(--border);border-radius:10px;max-height:240px;overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,0.5)"></div>
+        </div>
+        <div style="height:14px"></div>
+        <button class="share-btn secondary" onclick="showNewCustomerModal()" style="width:100%">👤 Neuen Kunden anlegen</button>
+      </div>
+
+      <!-- PRODUCT SELECTION -->
       <div class="card">
         <div class="card-title">Produkt wählen</div>
         <label>Kategorie</label>
@@ -119,6 +180,7 @@
         <input type="number" id="customEk" step="0.01" placeholder="z.B. 4.50" oninput="selectCustom()">
       </div>
 
+      <!-- CONFIGURATION -->
       <div class="card">
         <div class="card-title">Konfiguration</div>
         <label>Veredelungsart</label>
@@ -139,6 +201,7 @@
         </div>
       </div>
 
+      <!-- CALCULATION RESULT -->
       <div class="result" id="resultCard" style="display:none">
         <div class="card-title">Kalkulation</div>
         <div class="result-row"><span class="label">EK Netto (Stück)</span><span class="value" id="resEk">—</span></div>
@@ -158,27 +221,101 @@
         </div>
       </div>
 
+      <!-- ACTION BUTTONS -->
       <div class="btn-row">
         <button class="share-btn primary" onclick="copyOffer()">📋 Angebot kopieren</button>
         <button class="share-btn secondary" onclick="copyInternal()">🔒 Intern kopieren</button>
       </div>
       <div class="btn-row">
         <button class="share-btn primary" style="background:#2563eb" onclick="downloadPDF()">📄 PDF Angebot</button>
+        <button class="share-btn secondary" style="background:#9333ea" onclick="showQuotesHistory()">📚 Angebote anzeigen</button>
       </div>
-      <footer>Built by <a href="#">Ghostzicht</a> 👻 for LPD · <span id="productCount">0</span> Produkte</footer>
+
+      <footer>Built by <a href="#">Ghostzicht</a> 👻 for LPD · <span id="productCount">0</span> Produkte · <span id="customerCount">0</span> Kunden</footer>
     </div>
   </div>
 
-  <script>
-    // ENCRYPTED product data - only decryptable with correct password
-    const ENCRYPTED = {"salt":"npAUSOBIVahnLe+t3+rMXg==","iv":"C3RWcLy0jqymHxdk","tag":"CC8XOfJHCdimOp+kbZTv+Q==","data":"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"};
+  <!-- NEW CUSTOMER MODAL -->
+  <div class="modal" id="newCustomerModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Neuen Kunden anlegen</h3>
+        <button class="modal-close" onclick="closeNewCustomerModal()">×</button>
+      </div>
+      <form id="newCustomerForm" onsubmit="createCustomer(event)">
+        <label>Firmenname</label>
+        <input type="text" id="newCustomerCompany" required>
+        
+        <div class="row">
+          <div><label>Vorname</label><input type="text" id="newCustomerFirstName" required></div>
+          <div><label>Nachname</label><input type="text" id="newCustomerLastName" required></div>
+        </div>
+        
+        <label>E-Mail</label>
+        <input type="email" id="newCustomerEmail">
+        
+        <label>Telefon</label>
+        <input type="text" id="newCustomerPhone">
+        
+        <div class="row">
+          <div><label>Straße</label><input type="text" id="newCustomerStreet"></div>
+          <div><label>Nr.</label><input type="text" id="newCustomerHouseNumber" style="max-width:80px"></div>
+        </div>
+        
+        <label>Adresszusatz</label>
+        <input type="text" id="newCustomerAddressAddition">
+        
+        <div class="row">
+          <div><label>PLZ</label><input type="text" id="newCustomerZip"></div>
+          <div><label>Stadt</label><input type="text" id="newCustomerCity"></div>
+        </div>
+        
+        <label>Land</label>
+        <input type="text" id="newCustomerCountry" value="Deutschland">
+        
+        <label>Notizen</label>
+        <input type="text" id="newCustomerNotes">
+        
+        <button type="submit" class="login-btn" style="margin-top:10px">👤 Kunde anlegen</button>
+      </form>
+    </div>
+  </div>
 
-    let PRODUCTS = null;
+  <!-- QUOTES HISTORY MODAL -->
+  <div class="modal" id="quotesHistoryModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Angebots-Historie</h3>
+        <button class="modal-close" onclick="closeQuotesHistoryModal()">×</button>
+      </div>
+      <div id="quotesHistoryContent">
+        <div class="loading">
+          <div class="spinner"></div>
+          <p>Lade Angebote...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Supabase JS -->
+  <script src="https://unpkg.com/@supabase/supabase-js@2.38.4/dist/umd/supabase.js"></script>
+
+  <script>
+    // SUPABASE CONFIG
+    const SUPABASE_URL = 'https://rfgjylqyeaxrzlxqdvbb.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJmZ2p5bHF5ZWF4cnpseHFkdmJiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2OTI5MzQsImV4cCI6MjA4OTI2ODkzNH0.dNRB0xSg5zbx5kM2T3y4yiFdywOzsDkzZBGvLqGiI1M';
+    
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // GLOBAL VARIABLES
     let allProducts = [];
+    let allCustomers = [];
     let selectedCat = 'all';
     let printSides = 1;
     let printMethod = 'dtg';
     let highlightIdx = -1;
+    let selectedCustomer = null;
+    let selectedProduct = null;
 
     const METHOD_CONFIG = {
       dtg:       { label: 'DTG-Druck', vkPerSide: 8, ekPerSide: 3.77 },
@@ -199,198 +336,458 @@
       { min: 1, pct: 0 },
     ];
 
-    // --- DECRYPTION ---
-    async function decryptData(password) {
-      const salt = Uint8Array.from(atob(ENCRYPTED.salt), c => c.charCodeAt(0));
-      const iv = Uint8Array.from(atob(ENCRYPTED.iv), c => c.charCodeAt(0));
-      const tag = Uint8Array.from(atob(ENCRYPTED.tag), c => c.charCodeAt(0));
-      const data = Uint8Array.from(atob(ENCRYPTED.data), c => c.charCodeAt(0));
-
-      const enc = new TextEncoder();
-      const keyMaterial = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveKey']);
-      const key = await crypto.subtle.deriveKey(
-        { name: 'PBKDF2', salt, iterations: 100000, hash: 'SHA-256' },
-        keyMaterial,
-        { name: 'AES-GCM', length: 256 },
-        false,
-        ['decrypt']
-      );
-
-      // Combine data + tag for Web Crypto API
-      const combined = new Uint8Array(data.length + tag.length);
-      combined.set(data);
-      combined.set(tag, data.length);
-
-      const decrypted = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, combined);
-      return JSON.parse(new TextDecoder().decode(decrypted));
-    }
-
-    // --- LOGIN ---
-    async function doLogin() {
-      const pw = document.getElementById('loginPassword').value;
-      try {
-        PRODUCTS = await decryptData(pw);
-        sessionStorage.setItem('lpd_auth', pw);
-        document.getElementById('loginScreen').style.display = 'none';
-        document.getElementById('appScreen').style.display = 'block';
-        initApp();
-      } catch (e) {
-        document.getElementById('loginError').style.display = 'block';
-        document.getElementById('loginPassword').style.borderColor = 'var(--accent)';
-        setTimeout(() => {
-          document.getElementById('loginError').style.display = 'none';
-          document.getElementById('loginPassword').style.borderColor = '';
-        }, 2000);
-      }
-    }
-
-    // Auto-login if session exists
+    // AUTO-LOGIN CHECK
     (async () => {
-      const saved = sessionStorage.getItem('lpd_auth');
-      if (saved) {
-        try {
-          PRODUCTS = await decryptData(saved);
-          document.getElementById('loginScreen').style.display = 'none';
-          document.getElementById('appScreen').style.display = 'block';
-          initApp();
-        } catch (e) { sessionStorage.removeItem('lpd_auth'); }
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        showApp(session);
       }
     })();
 
-    // --- APP ---
-    function initApp() {
-      buildAllProducts();
-      let total = 0;
-      Object.values(PRODUCTS).forEach(arr => total += arr.length);
-      document.getElementById('productCount').textContent = total;
-      document.getElementById('productCountLabel').textContent = `${total} Produkte · Echte EK-Preise · Staffelrabatte`;
+    // LOGIN
+    async function doLogin() {
+      const email = document.getElementById('loginEmail').value;
+      const password = document.getElementById('loginPassword').value;
+      const btn = document.getElementById('loginBtn');
+      
+      if (!email || !password) {
+        showError('Bitte E-Mail und Passwort eingeben');
+        return;
+      }
 
+      btn.disabled = true;
+      btn.textContent = '⏳ Anmeldung...';
+      
+      try {
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+
+        if (error) throw error;
+
+        document.getElementById('loginSuccess').style.display = 'block';
+        setTimeout(() => {
+          showApp(data.session);
+        }, 500);
+
+      } catch (error) {
+        console.error('Login error:', error);
+        showError(error.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '🔓 Einloggen';
+      }
+    }
+
+    function showError(message) {
+      const errorEl = document.getElementById('loginError');
+      errorEl.textContent = message;
+      errorEl.style.display = 'block';
+      setTimeout(() => {
+        errorEl.style.display = 'none';
+      }, 3000);
+    }
+
+    async function showApp(session) {
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('appScreen').style.display = 'block';
+      document.getElementById('userInfo').style.display = 'block';
+      document.getElementById('userEmail').textContent = session.user.email;
+
+      await initApp();
+    }
+
+    async function logout() {
+      await supabase.auth.signOut();
+      location.reload();
+    }
+
+    // INIT APP
+    async function initApp() {
+      try {
+        // Load products from Supabase
+        const { data: products, error: productsError } = await supabase
+          .from('blanks')
+          .select('*')
+          .order('name');
+
+        if (productsError) throw productsError;
+
+        allProducts = products || [];
+
+        // Load customers from Supabase
+        const { data: customers, error: customersError } = await supabase
+          .from('customers')
+          .select('*')
+          .order('company');
+
+        if (customersError) throw customersError;
+
+        allCustomers = customers || [];
+
+        // Update UI
+        document.getElementById('productCount').textContent = allProducts.length;
+        document.getElementById('customerCount').textContent = allCustomers.length;
+        document.getElementById('productCountLabel').textContent = `${allProducts.length} Produkte · Live aus Supabase · Staffelrabatte`;
+
+        buildCategoryTabs();
+        filterCat('all');
+
+        // Create quotes table if not exists
+        await ensureQuotesTable();
+
+      } catch (error) {
+        console.error('Init error:', error);
+        document.getElementById('productCountLabel').textContent = 'Fehler beim Laden der Daten';
+      }
+    }
+
+    // ENSURE QUOTES TABLE EXISTS
+    async function ensureQuotesTable() {
+      try {
+        // Try to select from quotes table to check if it exists
+        const { error } = await supabase
+          .from('quotes')
+          .select('id')
+          .limit(1);
+
+        if (error && error.code === '42P01') {
+          // Table doesn't exist, show SQL to create it
+          console.log('Quotes table does not exist. Please run this SQL in Supabase:');
+          console.log(`
+CREATE TABLE quotes (
+  id BIGSERIAL PRIMARY KEY,
+  customer_id BIGINT REFERENCES customers(id),
+  quote_number TEXT NOT NULL,
+  items JSONB NOT NULL,
+  total DECIMAL(10,2) NOT NULL,
+  status TEXT DEFAULT 'draft',
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Enable RLS
+ALTER TABLE quotes ENABLE ROW LEVEL SECURITY;
+
+-- Create policy for authenticated users
+CREATE POLICY "Allow all operations for authenticated users" ON quotes
+  FOR ALL USING (auth.role() = 'authenticated');
+          `);
+        }
+      } catch (error) {
+        console.error('Error checking quotes table:', error);
+      }
+    }
+
+    function buildCategoryTabs() {
       const tabs = document.getElementById('catTabs');
       tabs.innerHTML = '';
+
+      // Count products by category
+      const categoryCount = {};
+      allProducts.forEach(p => {
+        categoryCount[p.category] = (categoryCount[p.category] || 0) + 1;
+      });
+
+      // "All" tab
       const allTab = document.createElement('button');
-      allTab.className = 'cat-tab active'; allTab.textContent = `Alle (${total})`;
-      allTab.onclick = () => filterCat('all'); allTab.id = 'cat-all';
+      allTab.className = 'cat-tab active';
+      allTab.textContent = `Alle (${allProducts.length})`;
+      allTab.onclick = () => filterCat('all');
+      allTab.id = 'cat-all';
       tabs.appendChild(allTab);
 
+      // Category tabs
       Object.entries(CAT_LABELS).forEach(([key, label]) => {
-        if (!PRODUCTS[key]) return;
+        if (!categoryCount[key]) return;
         const tab = document.createElement('button');
-        tab.className = 'cat-tab'; tab.textContent = `${label} (${PRODUCTS[key].length})`;
-        tab.onclick = () => filterCat(key); tab.id = `cat-${key}`;
+        tab.className = 'cat-tab';
+        tab.textContent = `${label} (${categoryCount[key]})`;
+        tab.onclick = () => filterCat(key);
+        tab.id = `cat-${key}`;
         tabs.appendChild(tab);
       });
-      filterCat('all');
     }
 
-    function buildAllProducts() {
-      allProducts = [];
-      Object.entries(PRODUCTS).forEach(([cat, items]) => {
-        items.forEach(p => allProducts.push({ ...p, cat }));
+    // CUSTOMER FUNCTIONS
+    async function onCustomerSearch() {
+      const q = document.getElementById('customerSearchInput').value.toLowerCase().trim();
+      if (!q) {
+        showCustomerDropdown();
+        return;
+      }
+
+      const filtered = allCustomers.filter(c => {
+        return (c.company || '').toLowerCase().includes(q) ||
+               (c.first_name || '').toLowerCase().includes(q) ||
+               (c.last_name || '').toLowerCase().includes(q) ||
+               (c.email || '').toLowerCase().includes(q);
       });
+
+      renderCustomerDropdown(filtered, q);
     }
 
-    // --- SEARCH ---
+    function showCustomerDropdown() {
+      renderCustomerDropdown(allCustomers.slice(0, 20));
+    }
+
+    function renderCustomerDropdown(customers, query = '') {
+      const dropdown = document.getElementById('customerDropdown');
+      
+      if (customers.length === 0) {
+        dropdown.innerHTML = '<div class="search-empty">Kein Kunde gefunden</div>';
+        dropdown.style.display = 'block';
+        return;
+      }
+
+      dropdown.innerHTML = customers.map(c => {
+        const displayName = c.company || `${c.first_name} ${c.last_name}`;
+        const details = `${c.first_name} ${c.last_name} • ${c.email || 'Keine E-Mail'}`;
+        
+        return `<div class="search-item" onclick='selectCustomer(${JSON.stringify(c).replace(/'/g, "&#39;")})'>
+          <span class="name">${displayName}</span>
+          <span class="meta">${details}</span>
+        </div>`;
+      }).join('');
+
+      dropdown.style.display = 'block';
+    }
+
+    function selectCustomer(customer) {
+      if (typeof customer === 'string') customer = JSON.parse(customer);
+      
+      selectedCustomer = customer;
+      document.getElementById('customerSearchInput').value = '';
+      document.getElementById('customerDropdown').style.display = 'none';
+      
+      const displayEl = document.getElementById('customerDisplay');
+      const nameEl = document.getElementById('customerName');
+      const detailsEl = document.getElementById('customerDetails');
+      
+      nameEl.textContent = customer.company || `${customer.first_name} ${customer.last_name}`;
+      detailsEl.textContent = `${customer.first_name} ${customer.last_name} • ${customer.email || 'Keine E-Mail'} • ${customer.phone || 'Kein Telefon'}`;
+      
+      displayEl.style.display = 'block';
+    }
+
+    function removeCustomer() {
+      selectedCustomer = null;
+      document.getElementById('customerDisplay').style.display = 'none';
+    }
+
+    function showNewCustomerModal() {
+      document.getElementById('newCustomerModal').style.display = 'flex';
+    }
+
+    function closeNewCustomerModal() {
+      document.getElementById('newCustomerModal').style.display = 'none';
+      document.getElementById('newCustomerForm').reset();
+    }
+
+    async function createCustomer(event) {
+      event.preventDefault();
+      
+      const customerData = {
+        company: document.getElementById('newCustomerCompany').value,
+        first_name: document.getElementById('newCustomerFirstName').value,
+        last_name: document.getElementById('newCustomerLastName').value,
+        email: document.getElementById('newCustomerEmail').value,
+        phone: document.getElementById('newCustomerPhone').value,
+        street: document.getElementById('newCustomerStreet').value,
+        house_number: document.getElementById('newCustomerHouseNumber').value,
+        address_addition: document.getElementById('newCustomerAddressAddition').value,
+        zip: document.getElementById('newCustomerZip').value,
+        city: document.getElementById('newCustomerCity').value,
+        country: document.getElementById('newCustomerCountry').value,
+        notes: document.getElementById('newCustomerNotes').value,
+        customer_type: 'business',
+        pod_discount_percent: 0
+      };
+
+      try {
+        const { data, error } = await supabase
+          .from('customers')
+          .insert([customerData])
+          .select()
+          .single();
+
+        if (error) throw error;
+
+        // Add to local array and select
+        allCustomers.push(data);
+        allCustomers.sort((a, b) => (a.company || '').localeCompare(b.company || ''));
+        
+        selectCustomer(data);
+        closeNewCustomerModal();
+        
+        // Update customer count
+        document.getElementById('customerCount').textContent = allCustomers.length;
+
+      } catch (error) {
+        console.error('Error creating customer:', error);
+        alert('Fehler beim Anlegen des Kunden: ' + error.message);
+      }
+    }
+
+    // PRODUCT SEARCH
     function onSearch() {
       const q = document.getElementById('searchInput').value.toLowerCase().trim();
       highlightIdx = -1;
-      if (!q) { showDropdown(); return; }
+      
+      if (!q) {
+        showDropdown();
+        return;
+      }
+
       const filtered = allProducts.filter(p => {
-        const catLabel = (CAT_LABELS[p.cat] || p.cat).toLowerCase();
-        return p.name.toLowerCase().includes(q) || catLabel.includes(q);
+        const catLabel = (CAT_LABELS[p.category] || p.category).toLowerCase();
+        return p.name.toLowerCase().includes(q) || 
+               (p.brand || '').toLowerCase().includes(q) ||
+               catLabel.includes(q);
       });
+
       renderDropdown(filtered, q);
     }
 
     function showDropdown() {
-      const q = document.getElementById('searchInput').value.toLowerCase().trim();
-      const cats = selectedCat === 'all' ? Object.keys(PRODUCTS) : [selectedCat];
-      let items = [];
-      cats.forEach(c => { if (PRODUCTS[c]) items.push(...PRODUCTS[c].map(p => ({...p, cat: c}))); });
-      renderDropdown(items, q);
+      const currentProducts = selectedCat === 'all' 
+        ? allProducts 
+        : allProducts.filter(p => p.category === selectedCat);
+      
+      renderDropdown(currentProducts.slice(0, 30));
     }
 
-    function renderDropdown(items, query) {
+    function renderDropdown(products, query = '') {
       const dropdown = document.getElementById('searchDropdown');
-      if (items.length === 0) {
+      
+      if (products.length === 0) {
         dropdown.innerHTML = '<div class="search-empty">Kein Produkt gefunden</div>';
-        dropdown.style.display = 'block'; return;
+        dropdown.style.display = 'block';
+        return;
       }
-      dropdown.innerHTML = items.slice(0, 30).map((p, i) => {
+
+      dropdown.innerHTML = products.slice(0, 30).map((p, i) => {
         let displayName = p.name;
         if (query) {
           const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
           displayName = p.name.replace(regex, '<mark>$1</mark>');
         }
-        const catLabel = (CAT_LABELS[p.cat] || p.cat).replace(/[^\w\s]/g, '').trim();
+        
+        const catLabel = (CAT_LABELS[p.category] || p.category).replace(/[^\w\s]/g, '').trim();
+        const brand = p.brand ? ` · ${p.brand}` : '';
+        
         return `<div class="search-item" onclick='selectSearchItem(${JSON.stringify(p).replace(/'/g, "&#39;")})'>
           <span class="name">${displayName}</span>
-          <span class="meta"><span class="price">${p.ek.toFixed(2)} €</span><br>${catLabel}</span>
+          <span class="meta">
+            <span class="price">${parseFloat(p.price_net).toFixed(2)} €</span><br>
+            ${catLabel}${brand}
+          </span>
         </div>`;
       }).join('');
-      if (items.length > 30) dropdown.innerHTML += `<div class="search-empty">${items.length - 30} weitere...</div>`;
+
+      if (products.length > 30) {
+        dropdown.innerHTML += `<div class="search-empty">${products.length - 30} weitere...</div>`;
+      }
+
       dropdown.style.display = 'block';
     }
 
     function selectSearchItem(p) {
       if (typeof p === 'string') p = JSON.parse(p);
+      
+      selectedProduct = p;
       document.getElementById('searchInput').value = p.name;
       document.getElementById('searchDropdown').style.display = 'none';
       document.getElementById('customEk').value = '';
+      
       document.getElementById('ekDisplay').style.display = 'block';
-      document.getElementById('ekValue').textContent = `${p.ek.toFixed(2)} €`;
-      window._selectedProduct = p;
+      document.getElementById('ekValue').textContent = `${parseFloat(p.price_net).toFixed(2)} €`;
+      
       calc();
     }
 
+    function selectCustom() {
+      selectedProduct = null;
+      document.getElementById('searchInput').value = '';
+      document.getElementById('ekDisplay').style.display = 'none';
+      calc();
+    }
+
+    // Click outside to close dropdowns
     document.addEventListener('click', (e) => {
-      if (!e.target.closest('#searchInput') && !e.target.closest('#searchDropdown'))
+      if (!e.target.closest('#searchInput') && !e.target.closest('#searchDropdown')) {
         document.getElementById('searchDropdown').style.display = 'none';
+      }
+      if (!e.target.closest('#customerSearchInput') && !e.target.closest('#customerDropdown')) {
+        document.getElementById('customerDropdown').style.display = 'none';
+      }
     });
 
-    // --- FILTER ---
+    // FILTER CATEGORIES
     function filterCat(cat) {
       selectedCat = cat;
       document.querySelectorAll('.cat-tab').forEach(t => t.classList.remove('active'));
       document.getElementById(`cat-${cat}`).classList.add('active');
     }
 
-    // --- CONFIG ---
+    // CONFIGURATION
     function setMethod(m) {
       printMethod = m;
-      ['dtg','dtf','plastisol'].forEach(id => document.getElementById(`method-${id}`).classList.toggle('active', id === m));
+      ['dtg','dtf','plastisol'].forEach(id => 
+        document.getElementById(`method-${id}`).classList.toggle('active', id === m)
+      );
       calc();
     }
 
     function setSides(n) {
       printSides = n;
-      [1,2,3].forEach(i => document.getElementById(`side${i}`).classList.toggle('active', i === n));
+      [1,2,3].forEach(i => 
+        document.getElementById(`side${i}`).classList.toggle('active', i === n)
+      );
       calc();
     }
 
-    function selectCustom() {
-      window._selectedProduct = null;
-      document.getElementById('searchInput').value = '';
-      document.getElementById('ekDisplay').style.display = 'none';
-      calc();
+    function getDiscount(qty) {
+      for (const d of DISCOUNTS) {
+        if (qty >= d.min) return d.pct;
+      }
+      return 0;
     }
-
-    function getDiscount(qty) { for (const d of DISCOUNTS) { if (qty >= d.min) return d.pct; } return 0; }
 
     function getEkAndName() {
-      if (window._selectedProduct) return { ek: window._selectedProduct.ek, name: window._selectedProduct.name };
+      if (selectedProduct) {
+        return { 
+          ek: parseFloat(selectedProduct.price_net), 
+          name: selectedProduct.name,
+          id: selectedProduct.id 
+        };
+      }
+      
       const customEk = parseFloat(document.getElementById('customEk').value);
-      if (customEk > 0) return { ek: customEk, name: 'Custom' };
+      if (customEk > 0) {
+        return { ek: customEk, name: 'Custom', id: null };
+      }
+      
       return null;
     }
 
-    // --- CALC ---
+    // CALCULATION
     function calc() {
       const product = getEkAndName();
-      if (!product) { document.getElementById('resultCard').style.display = 'none'; return; }
+      if (!product) {
+        document.getElementById('resultCard').style.display = 'none';
+        return;
+      }
+
       const { ek, name } = product;
       const qty = parseInt(document.getElementById('qty').value) || 0;
       const multi = parseFloat(document.getElementById('multi').value) || 2.5;
-      if (qty <= 0) { document.getElementById('resultCard').style.display = 'none'; return; }
+      
+      if (qty <= 0) {
+        document.getElementById('resultCard').style.display = 'none';
+        return;
+      }
 
       const vkPerSide = METHOD_CONFIG[printMethod].vkPerSide;
       const ekPerSide = METHOD_CONFIG[printMethod].ekPerSide;
@@ -411,7 +808,9 @@
       document.getElementById('resPrint').textContent = `${methodLabel}: ${printSides}× ${vkPerSide} € = ${printCostVk.toFixed(2)} €`;
       document.getElementById('resMulti').textContent = `${multi.toFixed(1)}×`;
       document.getElementById('resVk').textContent = `${vkBrutto.toFixed(2)} €`;
-      document.getElementById('resDiscount').innerHTML = discountPct > 0 ? `<span class="badge badge-orange">-${discountPct}%</span>` : `<span class="badge badge-green">Kein Rabatt</span>`;
+      document.getElementById('resDiscount').innerHTML = discountPct > 0 
+        ? `<span class="badge badge-orange">-${discountPct}%</span>` 
+        : `<span class="badge badge-green">Kein Rabatt</span>`;
       document.getElementById('resVkDiscount').textContent = `${vkAfterDiscount.toFixed(2)} €`;
       document.getElementById('resVkNetto').textContent = `${vkNetto.toFixed(2)} €`;
       document.getElementById('resMargin').textContent = `${profitPerUnit.toFixed(2)} € (${marginPct.toFixed(0)}%)`;
@@ -419,29 +818,52 @@
       document.getElementById('resPrintEk').textContent = `${printCostEk.toFixed(2)} € × ${qty} = ${(printCostEk * qty).toFixed(2)} €`;
       document.getElementById('resProfit').textContent = `${profitTotal.toFixed(2)} €`;
       document.getElementById('resProfitPct').textContent = `${marginPct.toFixed(1)}%`;
+
       const bar = document.getElementById('marginBar');
-      bar.style.width = `${Math.min(Math.max(marginPct,0),100)}%`;
+      bar.style.width = `${Math.min(Math.max(marginPct, 0), 100)}%`;
       bar.style.background = marginPct > 50 ? 'var(--green)' : marginPct > 30 ? 'var(--accent2)' : 'var(--accent)';
     }
 
-    // --- COPY ---
+    // COPY FUNCTIONS
     function copyOffer() {
-      const product = getEkAndName(); if (!product) return;
+      const product = getEkAndName();
+      if (!product) return;
+
       const qty = parseInt(document.getElementById('qty').value) || 0;
       const multi = parseFloat(document.getElementById('multi').value) || 2.5;
       const vkPerSide = METHOD_CONFIG[printMethod].vkPerSide;
-      const ekPerSide = METHOD_CONFIG[printMethod].ekPerSide;
       const printCostVk = printSides * vkPerSide;
-      const printCostEk = printSides * ekPerSide;
       const vk = (product.ek * multi) + printCostVk;
-      const disc = getDiscount(qty); const vkDisc = vk * (1 - disc / 100);
+      const disc = getDiscount(qty);
+      const vkDisc = vk * (1 - disc / 100);
       const total = vkDisc * qty;
-      const text = `📋 Angebot\n━━━━━━━━━━━━━━━\nProdukt: ${product.name}\nMenge: ${qty} Stück\nVeredelung: ${METHOD_CONFIG[printMethod].label}, ${printSides} Seite(n)\n${disc > 0 ? `Staffelrabatt: ${disc}%\n` : ''}\nStückpreis: ${vkDisc.toFixed(2)} € brutto\n━━━━━━━━━━━━━━━\nGesamt: ${total.toFixed(2)} € brutto\n\nPreise inkl. MwSt.`;
-      navigator.clipboard.writeText(text).then(() => { const b = document.querySelector('.share-btn.primary'); b.textContent = '✅ Kopiert!'; setTimeout(() => b.textContent = '📋 Angebot kopieren', 2000); });
+
+      let text = `📋 Angebot\n━━━━━━━━━━━━━━━\n`;
+      
+      if (selectedCustomer) {
+        text += `Kunde: ${selectedCustomer.company || `${selectedCustomer.first_name} ${selectedCustomer.last_name}`}\n`;
+      }
+      
+      text += `Produkt: ${product.name}\nMenge: ${qty} Stück\nVeredelung: ${METHOD_CONFIG[printMethod].label}, ${printSides} Seite(n)\n`;
+      
+      if (disc > 0) {
+        text += `Staffelrabatt: ${disc}%\n`;
+      }
+      
+      text += `\nStückpreis: ${vkDisc.toFixed(2)} € brutto\n━━━━━━━━━━━━━━━\nGesamt: ${total.toFixed(2)} € brutto\n\nPreise inkl. MwSt.`;
+
+      navigator.clipboard.writeText(text).then(() => {
+        const b = document.querySelector('.share-btn.primary');
+        const original = b.textContent;
+        b.textContent = '✅ Kopiert!';
+        setTimeout(() => b.textContent = original, 2000);
+      });
     }
 
     function copyInternal() {
-      const product = getEkAndName(); if (!product) return;
+      const product = getEkAndName();
+      if (!product) return;
+
       const qty = parseInt(document.getElementById('qty').value) || 0;
       const multi = parseFloat(document.getElementById('multi').value) || 2.5;
       const vkPerSide = METHOD_CONFIG[printMethod].vkPerSide;
@@ -449,32 +871,74 @@
       const printCostVk = printSides * vkPerSide;
       const printCostEk = printSides * ekPerSide;
       const vk = (product.ek * multi) + printCostVk;
-      const disc = getDiscount(qty); const vkDisc = vk * (1 - disc / 100);
-      const total = vkDisc * qty; const vkNettoC = vkDisc / 1.19; const profit = (vkNettoC - product.ek - printCostEk) * qty;
-      const text = `🔒 Interne Kalkulation\n━━━━━━━━━━━━━━━\nProdukt: ${product.name}\nEK Netto: ${product.ek.toFixed(2)} €\nMenge: ${qty} | Veredelung: ${METHOD_CONFIG[printMethod].label} ${printSides}× | Multi: ${multi}×\nVK Brutto: ${vkDisc.toFixed(2)} € (Netto: ${(vkDisc/1.19).toFixed(2)} €)\nGesamt: ${total.toFixed(2)} €\nGewinn: ${profit.toFixed(2)} € (${((vkDisc - product.ek) / vkDisc * 100).toFixed(1)}%)`;
-      navigator.clipboard.writeText(text).then(() => { const b = document.querySelector('.share-btn.secondary'); b.textContent = '✅ Kopiert!'; setTimeout(() => b.textContent = '🔒 Intern kopieren', 2000); });
+      const disc = getDiscount(qty);
+      const vkDisc = vk * (1 - disc / 100);
+      const total = vkDisc * qty;
+      const vkNettoC = vkDisc / 1.19;
+      const profit = (vkNettoC - product.ek - printCostEk) * qty;
+
+      const text = `🔒 Interne Kalkulation\n━━━━━━━━━━━━━━━\nProdukt: ${product.name}\nEK Netto: ${product.ek.toFixed(2)} €\nMenge: ${qty} | Veredelung: ${METHOD_CONFIG[printMethod].label} ${printSides}× | Multi: ${multi}×\nVK Brutto: ${vkDisc.toFixed(2)} € (Netto: ${(vkDisc/1.19).toFixed(2)} €)\nGesamt: ${total.toFixed(2)} €\nGewinn: ${profit.toFixed(2)} € (${((profit / (vkNettoC * qty)) * 100).toFixed(1)}%)`;
+
+      navigator.clipboard.writeText(text).then(() => {
+        const b = document.querySelector('.share-btn.secondary');
+        const original = b.textContent;
+        b.textContent = '✅ Kopiert!';
+        setTimeout(() => b.textContent = original, 2000);
+      });
     }
 
-    // --- PDF ---
-    function downloadPDF() {
-      const product = getEkAndName(); if (!product) return;
+    // PDF GENERATION
+    async function downloadPDF() {
+      const product = getEkAndName();
+      if (!product) return;
+
       const qty = parseInt(document.getElementById('qty').value) || 0;
       const multi = parseFloat(document.getElementById('multi').value) || 2.5;
       const vkPerSide = METHOD_CONFIG[printMethod].vkPerSide;
-      const ekPerSide = METHOD_CONFIG[printMethod].ekPerSide;
       const printCostVk = printSides * vkPerSide;
-      const printCostEk = printSides * ekPerSide;
       const vk = (product.ek * multi) + printCostVk;
-      const disc = getDiscount(qty); const vkDisc = vk * (1 - disc / 100);
+      const disc = getDiscount(qty);
+      const vkDisc = vk * (1 - disc / 100);
       const total = vkDisc * qty;
       const today = new Date().toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
-      const nr = `ANG-${Date.now().toString().slice(-6)}`;
+      const year = new Date().getFullYear();
+      const nr = `ANG-${year}-${String(Date.now()).slice(-4)}`;
       const methodLabel = METHOD_CONFIG[printMethod].label;
+
+      // Save quote to database
+      await saveQuote(product, qty, vkDisc, total, nr);
+
+      // Generate PDF
+      let customerSection = '';
+      if (selectedCustomer) {
+        const address = [
+          selectedCustomer.street && selectedCustomer.house_number ? 
+            `${selectedCustomer.street} ${selectedCustomer.house_number}` : null,
+          selectedCustomer.address_addition || null,
+          selectedCustomer.zip && selectedCustomer.city ? 
+            `${selectedCustomer.zip} ${selectedCustomer.city}` : null,
+          selectedCustomer.country !== 'Deutschland' ? selectedCustomer.country : null
+        ].filter(Boolean).join('<br>');
+
+        customerSection = `
+          <div class="customer-section">
+            <p class="section-title">Kunde</p>
+            <div class="customer-info">
+              <strong>${selectedCustomer.company || `${selectedCustomer.first_name} ${selectedCustomer.last_name}`}</strong><br>
+              ${selectedCustomer.first_name} ${selectedCustomer.last_name}<br>
+              ${address}<br>
+              ${selectedCustomer.email || ''}<br>
+              ${selectedCustomer.phone || ''}
+            </div>
+          </div>
+        `;
+      }
 
       const w = window.open('', '_blank');
       w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Angebot ${nr}</title>
-<style>@page{size:A4;margin:0}*{margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;color:#1a1a1a;padding:60px;max-width:800px;margin:0 auto}.header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:50px;padding-bottom:30px;border-bottom:3px solid #e63946}.brand img{height:50px;margin-bottom:8px}.brand p{font-size:12px;color:#666;margin-top:4px}.meta{text-align:right;font-size:13px;color:#555;line-height:1.8}.meta strong{color:#1a1a1a}.section-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#999;margin-bottom:16px}table{width:100%;border-collapse:collapse;margin-bottom:40px}th{text-align:left;padding:12px 16px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#999;border-bottom:2px solid #eee}td{padding:14px 16px;font-size:14px;border-bottom:1px solid #f0f0f0}.right{text-align:right}.total-row td{border-bottom:none;padding-top:20px}.total-label{font-size:16px;font-weight:700}.total-value{font-size:24px;font-weight:800;color:#e63946}.discount-badge{display:inline-block;background:#fff3e0;color:#e65100;padding:2px 8px;border-radius:4px;font-size:12px;font-weight:700}.notes{margin-top:40px;padding:20px;background:#f9f9f9;border-radius:8px;font-size:12px;color:#666;line-height:1.6}.footer{margin-top:60px;text-align:center;font-size:11px;color:#bbb;padding-top:20px;border-top:1px solid #eee}@media print{body{padding:40px}.no-print{display:none}}</style></head><body>
+<style>@page{size:A4;margin:0}*{margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;color:#1a1a1a;padding:60px;max-width:800px;margin:0 auto}.header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:50px;padding-bottom:30px;border-bottom:3px solid #e63946}.brand img{height:50px;margin-bottom:8px}.brand p{font-size:12px;color:#666;margin-top:4px}.meta{text-align:right;font-size:13px;color:#555;line-height:1.8}.meta strong{color:#1a1a1a}.section-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#999;margin-bottom:16px}.customer-section{margin-bottom:30px}.customer-info{font-size:14px;line-height:1.6}table{width:100%;border-collapse:collapse;margin-bottom:40px}th{text-align:left;padding:12px 16px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#999;border-bottom:2px solid #eee}td{padding:14px 16px;font-size:14px;border-bottom:1px solid #f0f0f0}.right{text-align:right}.total-row td{border-bottom:none;padding-top:20px}.total-label{font-size:16px;font-weight:700}.total-value{font-size:24px;font-weight:800;color:#e63946}.discount-badge{display:inline-block;background:#fff3e0;color:#e65100;padding:2px 8px;border-radius:4px;font-size:12px;font-weight:700}.notes{margin-top:40px;padding:20px;background:#f9f9f9;border-radius:8px;font-size:12px;color:#666;line-height:1.6}.footer{margin-top:60px;text-align:center;font-size:11px;color:#bbb;padding-top:20px;border-top:1px solid #eee}@media print{body{padding:40px}.no-print{display:none}}</style></head><body>
 <div class="header"><div class="brand"><img src="https://localprintdepartment.com/cdn/shop/files/LPD_Logo_BLK.png?v=1706191565&width=600" alt="LPD"><p>Textildruck & Print on Demand</p></div><div class="meta"><strong>Angebot ${nr}</strong><br>Datum: ${today}<br>Gültig: 14 Tage</div></div>
+${customerSection}
 <p class="section-title">Angebotsdetails</p>
 <table><thead><tr><th>Produkt</th><th>Veredelung</th><th class="right">Stückpreis</th><th class="right">Menge</th><th class="right">Gesamt</th></tr></thead><tbody>
 <tr><td><strong>${product.name}</strong></td><td>${methodLabel}, ${printSides} Seite${printSides>1?'n':''}</td><td class="right">${vkDisc.toFixed(2)} €</td><td class="right">${qty}</td><td class="right"><strong>${total.toFixed(2)} €</strong></td></tr>
@@ -487,6 +951,128 @@ ${disc > 0 ? `<tr><td colspan="4" style="color:#666">Inkl. Staffelrabatt</td><td
 </body></html>`);
       w.document.close();
     }
+
+    // SAVE QUOTE TO DATABASE
+    async function saveQuote(product, qty, unitPrice, total, quoteNumber) {
+      if (!selectedCustomer) return; // Only save if customer is selected
+
+      try {
+        const quoteData = {
+          customer_id: selectedCustomer.id,
+          quote_number: quoteNumber,
+          items: {
+            product_id: product.id,
+            product_name: product.name,
+            quantity: qty,
+            unit_price: unitPrice,
+            print_method: printMethod,
+            print_sides: printSides,
+            discount_percent: getDiscount(qty)
+          },
+          total: total,
+          status: 'draft'
+        };
+
+        const { data, error } = await supabase
+          .from('quotes')
+          .insert([quoteData]);
+
+        if (error) throw error;
+
+        console.log('Quote saved successfully:', quoteNumber);
+        
+      } catch (error) {
+        console.error('Error saving quote:', error);
+        // Don't show error to user, just log it
+      }
+    }
+
+    // QUOTES HISTORY
+    async function showQuotesHistory() {
+      document.getElementById('quotesHistoryModal').style.display = 'flex';
+      document.getElementById('quotesHistoryContent').innerHTML = `
+        <div class="loading">
+          <div class="spinner"></div>
+          <p>Lade Angebote...</p>
+        </div>
+      `;
+
+      try {
+        const { data: quotes, error } = await supabase
+          .from('quotes')
+          .select(`
+            *,
+            customers (
+              company,
+              first_name,
+              last_name
+            )
+          `)
+          .order('created_at', { ascending: false })
+          .limit(50);
+
+        if (error) throw error;
+
+        const content = document.getElementById('quotesHistoryContent');
+        
+        if (!quotes || quotes.length === 0) {
+          content.innerHTML = '<div class="search-empty">Noch keine Angebote gespeichert</div>';
+          return;
+        }
+
+        content.innerHTML = quotes.map(quote => {
+          const customer = quote.customers;
+          const customerName = customer ? 
+            (customer.company || `${customer.first_name} ${customer.last_name}`) : 
+            'Unbekannter Kunde';
+          
+          const date = new Date(quote.created_at).toLocaleDateString('de-DE', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+          });
+
+          const items = quote.items;
+          const productInfo = items ? 
+            `${items.product_name} (${items.quantity}× ${items.print_method.toUpperCase()})` : 
+            'Produktdetails nicht verfügbar';
+
+          return `
+            <div class="quote-item">
+              <div class="quote-header">
+                <span class="quote-number">${quote.quote_number}</span>
+                <span class="quote-date">${date}</span>
+              </div>
+              <div class="quote-customer">${customerName}</div>
+              <div style="font-size: 0.85rem; color: var(--muted); margin-bottom: 8px;">
+                ${productInfo}
+              </div>
+              <div class="quote-total">${parseFloat(quote.total).toFixed(2)} €</div>
+            </div>
+          `;
+        }).join('');
+
+      } catch (error) {
+        console.error('Error loading quotes:', error);
+        document.getElementById('quotesHistoryContent').innerHTML = 
+          '<div class="search-empty">Fehler beim Laden der Angebote</div>';
+      }
+    }
+
+    function closeQuotesHistoryModal() {
+      document.getElementById('quotesHistoryModal').style.display = 'none';
+    }
+
+    // Close modals when clicking outside
+    document.addEventListener('click', (e) => {
+      const modals = ['newCustomerModal', 'quotesHistoryModal'];
+      modals.forEach(modalId => {
+        const modal = document.getElementById(modalId);
+        if (e.target === modal) {
+          modal.style.display = 'none';
+        }
+      });
+    });
   </script>
 </body>
 </html>
