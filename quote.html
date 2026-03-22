@@ -151,12 +151,50 @@
       color: var(--muted);
       margin-bottom: 2px;
     }
-    
+    .item-original-price {
+      font-size: 0.8rem;
+      color: #999;
+      text-decoration: line-through;
+      margin-bottom: 1px;
+    }
     .item-total {
       font-weight: 700;
       font-size: 1.1rem;
       color: var(--text);
     }
+    .item-savings {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: #dcfce7;
+      color: #059669;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      margin-top: 4px;
+    }
+    .discount-badge-customer {
+      display: inline-block;
+      background: #fef3c7;
+      color: #b45309;
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-size: 0.7rem;
+      font-weight: 700;
+    }
+    .savings-total {
+      background: linear-gradient(135deg, #dcfce7 0%, #d1fae5 100%);
+      border: 1px solid #86efac;
+      border-radius: 12px;
+      padding: 14px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 12px 0;
+    }
+    .savings-total .savings-label { font-size: 0.85rem; font-weight: 600; color: #059669; }
+    .savings-total .savings-value { font-size: 1.1rem; font-weight: 800; color: #059669; }
     
     .tax-breakdown {
       background: var(--card);
@@ -464,20 +502,44 @@
 
       // Items
       const itemsList = document.getElementById('itemsList');
-      itemsList.innerHTML = quoteData.items.map(item => `
+      let totalSavings = 0;
+      itemsList.innerHTML = quoteData.items.map(item => {
+        const disc = parseFloat(item.discount) || 0;
+        const unitPrice = parseFloat(item.unitPrice);
+        const originalPrice = disc > 0 ? unitPrice / (1 - disc / 100) : unitPrice;
+        const qty = parseInt(item.qty);
+        const savedPerUnit = originalPrice - unitPrice;
+        const savedTotal = savedPerUnit * qty;
+        totalSavings += savedTotal;
+        
+        return `
         <li class="item">
           <div class="item-info">
             <div class="item-name">${item.name}</div>
             <div class="item-details">
-              ${item.qty}× · ${item.methodLabel}, ${item.printSides} Seite${item.printSides > 1 ? 'n' : ''}${item.discount > 0 ? ` · Rabatt: ${item.discount}%` : ''}
+              ${qty}× · ${item.method || (item.methodLabel + ', ' + item.printSides + ' Seite' + (item.printSides > 1 ? 'n' : ''))}
+              ${disc > 0 ? ` <span class="discount-badge-customer">-${disc}%</span>` : ''}
             </div>
+            ${disc > 0 ? `<div class="item-savings">🎉 Du sparst ${savedTotal.toFixed(2)} € (${savedPerUnit.toFixed(2)} € pro Stück)</div>` : ''}
           </div>
           <div class="item-price">
-            <div class="item-unit-price">${parseFloat(item.unitPrice).toFixed(2)} € / Stk</div>
+            ${disc > 0 ? `<div class="item-original-price">${originalPrice.toFixed(2)} €/Stk</div>` : ''}
+            <div class="item-unit-price">${unitPrice.toFixed(2)} € / Stk</div>
             <div class="item-total">${parseFloat(item.total).toFixed(2)} €</div>
           </div>
-        </li>
-      `).join('');
+        </li>`;
+      }).join('');
+
+      // Show total savings banner
+      if (totalSavings > 0) {
+        const savingsBanner = document.createElement('div');
+        savingsBanner.className = 'savings-total';
+        savingsBanner.innerHTML = `
+          <span class="savings-label">🎉 Deine Gesamtersparnis</span>
+          <span class="savings-value">-${totalSavings.toFixed(2)} €</span>
+        `;
+        document.getElementById('itemsList').parentNode.insertBefore(savingsBanner, document.getElementById('taxBreakdown'));
+      }
 
       // Tax breakdown (§14 UStG compliant)
       const taxBreakdown = document.getElementById('taxBreakdown');
