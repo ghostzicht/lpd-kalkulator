@@ -538,7 +538,8 @@
           <span class="savings-label">🎉 Deine Gesamtersparnis</span>
           <span class="savings-value">-${totalSavings.toFixed(2)} €</span>
         `;
-        document.getElementById('itemsList').parentNode.insertBefore(savingsBanner, document.getElementById('taxBreakdown'));
+        const taxEl = document.getElementById('taxBreakdown');
+        taxEl.parentNode.insertBefore(savingsBanner, taxEl);
       }
 
       // Tax breakdown (§14 UStG compliant)
