@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Angebots-Bestätigung - LPD</title>
+  <style>
+    :root {
+      --bg: #ffffff; --card: #f8fafc; --border: #e2e8f0;
+      --text: #1e293b; --muted: #64748b; --accent: #e63946;
+      --accent2: #f4a261; --green: #059669; --light-green: #dcfce7;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { 
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; 
+      background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+      color: var(--text); 
+      min-height: 100vh; 
+      padding: 16px;
+      line-height: 1.6;
+    }
+    .container { max-width: 520px; margin: 0 auto; }
+    
+    header { 
+      text-align: center; 
+      padding: 32px 0 24px;
+      background: white;
+      border-radius: 16px;
+      margin-bottom: 20px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    header img { height: 48px; margin-bottom: 12px; }
+    header h1 { 
+      font-size: 1.8rem; 
+      font-weight: 800; 
+      color: var(--accent);
+      margin-bottom: 4px;
+    }
+    header p { 
+      font-size: 0.9rem; 
+      color: var(--muted); 
+      font-weight: 500;
+    }
+    
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #fef3c7;
+      color: #92400e;
+      padding: 8px 16px;
+      border-radius: 24px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      margin: 20px 0;
+      border: 2px solid #fbbf24;
+    }
+    
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      background: #22c55e;
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    
+    .card { 
+      background: white; 
+      border-radius: 16px; 
+      padding: 24px; 
+      margin-bottom: 16px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      border: 1px solid var(--border);
+    }
+    
+    .card-title { 
+      font-size: 0.8rem; 
+      font-weight: 800; 
+      text-transform: uppercase; 
+      letter-spacing: 0.1em; 
+      color: var(--muted); 
+      margin-bottom: 16px; 
+    }
+    
+    .quote-number {
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: var(--accent);
+      margin-bottom: 8px;
+    }
+    
+    .customer-info h3 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+    
+    .customer-info p {
+      color: var(--muted);
+      font-size: 0.95rem;
+      margin-bottom: 2px;
+    }
+    
+    .items-list {
+      list-style: none;
+      padding: 0;
+    }
+    
+    .item {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding: 16px 0;
+      border-bottom: 1px solid var(--border);
+      gap: 16px;
+    }
+    
+    .item:last-child { border-bottom: none; }
+    
+    .item-info {
+      flex: 1;
+      min-width: 0;
+    }
+    
+    .item-name {
+      font-weight: 600;
+      font-size: 1rem;
+      margin-bottom: 4px;
+      color: var(--text);
+    }
+    
+    .item-details {
+      font-size: 0.85rem;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+    
+    .item-price {
+      text-align: right;
+      white-space: nowrap;
+    }
+    
+    .item-unit-price {
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-bottom: 2px;
+    }
+    
+    .item-total {
+      font-weight: 700;
+      font-size: 1.1rem;
+      color: var(--text);
+    }
+    
+    .tax-breakdown {
+      background: var(--card);
+      border-radius: 12px;
+      padding: 20px;
+      margin: 20px 0;
+    }
+    
+    .tax-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 6px 0;
+      font-size: 0.95rem;
+    }
+    
+    .tax-row.subtotal {
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 12px;
+      margin-bottom: 12px;
+      font-weight: 600;
+    }
+    
+    .tax-row.total {
+      border-top: 2px solid var(--accent);
+      padding-top: 12px;
+      margin-top: 12px;
+      font-weight: 800;
+      font-size: 1.2rem;
+      color: var(--accent);
+    }
+    
+    .grand-total {
+      text-align: center;
+      padding: 24px;
+      background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+      border-radius: 16px;
+      margin: 24px 0;
+    }
+    
+    .grand-total .amount {
+      font-size: 2.5rem;
+      font-weight: 800;
+      color: var(--accent);
+      margin-bottom: 4px;
+    }
+    
+    .grand-total .label {
+      font-size: 0.9rem;
+      color: var(--muted);
+      font-weight: 600;
+    }
+    
+    .validity {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.9rem;
+      color: var(--muted);
+      margin: 16px 0;
+    }
+    
+    .action-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin: 32px 0;
+    }
+    
+    .btn {
+      padding: 16px 24px;
+      border: none;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      text-align: center;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    
+    .btn-primary {
+      background: var(--green);
+      color: white;
+      box-shadow: 0 2px 4px rgba(5, 150, 105, 0.2);
+    }
+    
+    .btn-primary:hover {
+      background: #047857;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(5, 150, 105, 0.3);
+    }
+    
+    .btn-secondary {
+      background: transparent;
+      color: var(--muted);
+      border: 2px solid var(--border);
+    }
+    
+    .btn-secondary:hover {
+      border-color: var(--muted);
+      color: var(--text);
+    }
+    
+    .success-message, .decline-message {
+      text-align: center;
+      padding: 32px;
+      border-radius: 16px;
+      margin: 24px 0;
+      display: none;
+    }
+    
+    .success-message {
+      background: var(--light-green);
+      color: var(--green);
+      border: 2px solid #bbf7d0;
+    }
+    
+    .decline-message {
+      background: #fef2f2;
+      color: #dc2626;
+      border: 2px solid #fecaca;
+    }
+    
+    .success-message h3, .decline-message h3 {
+      font-size: 1.3rem;
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+    
+    footer {
+      text-align: center;
+      padding: 32px 16px;
+      font-size: 0.8rem;
+      color: var(--muted);
+      border-top: 1px solid var(--border);
+      margin-top: 32px;
+    }
+    
+    footer a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+    
+    .error-state {
+      text-align: center;
+      padding: 48px 24px;
+    }
+    
+    .error-state h2 {
+      color: var(--accent);
+      margin-bottom: 12px;
+    }
+    
+    .error-state p {
+      color: var(--muted);
+    }
+
+    /* Konfetti Animation */
+    .confetti {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1000;
+    }
+
+    .confetti-piece {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      background: var(--green);
+      animation: confetti-fall 3s linear infinite;
+    }
+
+    @keyframes confetti-fall {
+      0% {
+        transform: translateY(-100vh) rotate(0deg);
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(100vh) rotate(720deg);
+        opacity: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container" id="mainContainer">
+    <header>
+      <img src="https://localprintdepartment.com/cdn/shop/files/LPD_Logo_BLK.png?v=1706191565&width=600" alt="LPD">
+      <h1>Angebots-Bestätigung</h1>
+      <p>Textildruck & Print on Demand</p>
+    </header>
+
+    <div class="card">
+      <div style="text-align: center;">
+        <div class="quote-number" id="quoteNumber">Lädt...</div>
+        <div class="status-badge">
+          ⏳ Warte auf Bestätigung
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Kunde</div>
+      <div class="customer-info" id="customerInfo">
+        <h3 id="customerName">Lädt...</h3>
+        <p id="customerAddress"></p>
+        <p id="customerContact"></p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Angebotsdetails</div>
+      <ul class="items-list" id="itemsList">
+        <!-- Items werden hier eingefügt -->
+      </ul>
+    </div>
+
+    <div class="tax-breakdown" id="taxBreakdown">
+      <!-- MwSt. Aufschlüsselung wird hier eingefügt -->
+    </div>
+
+    <div class="grand-total">
+      <div class="amount" id="grandTotalAmount">0,00 €</div>
+      <div class="label" id="grandTotalLabel">Gesamtbetrag</div>
+    </div>
+
+    <div class="validity">
+      <span class="pulse-dot"></span>
+      <span>Gültig bis: <strong id="validUntil">-</strong></span>
+    </div>
+
+    <div class="action-buttons" id="actionButtons">
+      <button class="btn btn-primary" onclick="acceptOffer()">
+        ✅ Angebot annehmen
+      </button>
+      <button class="btn btn-secondary" onclick="declineOffer()">
+        Angebot ablehnen
+      </button>
+    </div>
+
+    <div class="success-message" id="successMessage">
+      <h3>🎉 Vielen Dank!</h3>
+      <p>Ihr Angebot wurde erfolgreich angenommen. Wir melden uns in Kürze mit den weiteren Schritten bei Ihnen!</p>
+    </div>
+
+    <div class="decline-message" id="declineMessage">
+      <h3>😔 Schade!</h3>
+      <p>Das Angebot wurde abgelehnt. Wir melden uns gerne mit alternativen Vorschlägen bei Ihnen!</p>
+    </div>
+  </div>
+
+  <footer>
+    Local Print Department · Textildruck & Print on Demand
+  </footer>
+
+  <script>
+    // Parse quote data from URL
+    function parseQuoteData() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const dataParam = urlParams.get('data');
+      
+      if (!dataParam) {
+        showError('Kein Angebotsdaten gefunden.');
+        return null;
+      }
+
+      try {
+        const decoded = atob(dataParam);
+        return JSON.parse(decoded);
+      } catch (error) {
+        console.error('Error parsing quote data:', error);
+        showError('Ungültige Angebotsdaten.');
+        return null;
+      }
+    }
+
+    function showError(message) {
+      document.getElementById('mainContainer').innerHTML = `
+        <div class="error-state">
+          <h2>❌ Fehler</h2>
+          <p>${message}</p>
+          <p>Bitte kontaktieren Sie uns direkt.</p>
+        </div>
+      `;
+    }
+
+    function renderQuote(quoteData) {
+      // Quote number
+      document.getElementById('quoteNumber').textContent = quoteData.quoteNumber;
+      document.title = `${quoteData.quoteNumber} - Angebots-Bestätigung`;
+
+      // Customer info
+      document.getElementById('customerName').textContent = quoteData.customer.name;
+      document.getElementById('customerAddress').textContent = quoteData.customer.address || '';
+      const contact = [quoteData.customer.email, quoteData.customer.phone].filter(Boolean).join(' · ');
+      document.getElementById('customerContact').textContent = contact;
+
+      // Items
+      const itemsList = document.getElementById('itemsList');
+      itemsList.innerHTML = quoteData.items.map(item => `
+        <li class="item">
+          <div class="item-info">
+            <div class="item-name">${item.name}</div>
+            <div class="item-details">
+              ${item.qty}× · ${item.methodLabel}, ${item.printSides} Seite${item.printSides > 1 ? 'n' : ''}${item.discount > 0 ? ` · Rabatt: ${item.discount}%` : ''}
+            </div>
+          </div>
+          <div class="item-price">
+            <div class="item-unit-price">${item.unitPrice.toFixed(2)} € / Stk</div>
+            <div class="item-total">${item.total.toFixed(2)} €</div>
+          </div>
+        </li>
+      `).join('');
+
+      // Tax breakdown (§14 UStG compliant)
+      const taxBreakdown = document.getElementById('taxBreakdown');
+      const subtotal = quoteData.items.reduce((sum, item) => sum + item.total, 0);
+      const netAmount = quoteData.totalBrutto / 1.19;
+      const taxAmount = quoteData.totalBrutto - netAmount;
+
+      if (quoteData.priceMode === 'netto') {
+        taxBreakdown.innerHTML = `
+          <div class="tax-row subtotal">
+            <span>Zwischensumme (netto)</span>
+            <span>${subtotal.toFixed(2)} €</span>
+          </div>
+          <div class="tax-row">
+            <span>zzgl. MwSt. (19%)</span>
+            <span>${taxAmount.toFixed(2)} €</span>
+          </div>
+          <div class="tax-row total">
+            <span>Gesamtbetrag (brutto)</span>
+            <span>${quoteData.totalBrutto.toFixed(2)} €</span>
+          </div>
+        `;
+      } else {
+        taxBreakdown.innerHTML = `
+          <div class="tax-row subtotal">
+            <span>Zwischensumme (brutto)</span>
+            <span>${subtotal.toFixed(2)} €</span>
+          </div>
+          <div class="tax-row">
+            <span>Nettobetrag</span>
+            <span>${netAmount.toFixed(2)} €</span>
+          </div>
+          <div class="tax-row">
+            <span>MwSt. (19%)</span>
+            <span>${taxAmount.toFixed(2)} €</span>
+          </div>
+          <div class="tax-row total">
+            <span>Gesamtbetrag (brutto)</span>
+            <span>${quoteData.totalBrutto.toFixed(2)} €</span>
+          </div>
+        `;
+      }
+
+      // Grand total
+      document.getElementById('grandTotalAmount').textContent = `${quoteData.totalBrutto.toFixed(2)} €`;
+      document.getElementById('grandTotalLabel').textContent = 'Gesamtbetrag (brutto)';
+
+      // Valid until
+      document.getElementById('validUntil').textContent = quoteData.validUntil;
+    }
+
+    function acceptOffer() {
+      // Hide action buttons
+      document.getElementById('actionButtons').style.display = 'none';
+      
+      // Show success message
+      document.getElementById('successMessage').style.display = 'block';
+      
+      // Show confetti
+      showConfetti();
+      
+      // Scroll to success message
+      setTimeout(() => {
+        document.getElementById('successMessage').scrollIntoView({ behavior: 'smooth' });
+      }, 100);
+    }
+
+    function declineOffer() {
+      // Hide action buttons
+      document.getElementById('actionButtons').style.display = 'none';
+      
+      // Show decline message
+      document.getElementById('declineMessage').style.display = 'block';
+      
+      // Scroll to decline message
+      setTimeout(() => {
+        document.getElementById('declineMessage').scrollIntoView({ behavior: 'smooth' });
+      }, 100);
+    }
+
+    function showConfetti() {
+      const confettiContainer = document.createElement('div');
+      confettiContainer.className = 'confetti';
+      document.body.appendChild(confettiContainer);
+
+      const colors = ['#059669', '#e63946', '#f4a261', '#2563eb', '#7c3aed'];
+      
+      for (let i = 0; i < 100; i++) {
+        const confettiPiece = document.createElement('div');
+        confettiPiece.className = 'confetti-piece';
+        confettiPiece.style.left = Math.random() * 100 + '%';
+        confettiPiece.style.background = colors[Math.floor(Math.random() * colors.length)];
+        confettiPiece.style.animationDelay = Math.random() * 2 + 's';
+        confettiPiece.style.animationDuration = (Math.random() * 2 + 2) + 's';
+        confettiContainer.appendChild(confettiPiece);
+      }
+
+      // Remove confetti after animation
+      setTimeout(() => {
+        document.body.removeChild(confettiContainer);
+      }, 5000);
+    }
+
+    // Initialize page
+    document.addEventListener('DOMContentLoaded', function() {
+      const quoteData = parseQuoteData();
+      if (quoteData) {
+        renderQuote(quoteData);
+      }
+    });
+  </script>
+</body>
+</html>
