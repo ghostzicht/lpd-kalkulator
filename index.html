@@ -943,7 +943,7 @@ CREATE POLICY "Allow all operations for authenticated users" ON quotes
     }
 
     // PDF GENERATION
-    async function downloadPDF() {
+    function downloadPDF() {
       const product = getEkAndName();
       if (!product) return;
 
@@ -960,10 +960,10 @@ CREATE POLICY "Allow all operations for authenticated users" ON quotes
       const nr = `ANG-${year}-${String(Date.now()).slice(-4)}`;
       const methodLabel = METHOD_CONFIG[printMethod].label;
 
-      // Save quote to database (non-blocking — PDF opens even if save fails)
+      // Save quote to database (non-blocking, fire-and-forget)
       saveQuote(product, qty, vkDisc, total, nr).catch(e => console.warn('Quote save skipped:', e.message));
 
-      // Generate PDF
+      // Generate PDF — window.open MUST be synchronous (not after await) or mobile browsers block it
       let customerSection = '';
       if (selectedCustomer) {
         const address = [
