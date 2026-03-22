@@ -473,17 +473,17 @@
             </div>
           </div>
           <div class="item-price">
-            <div class="item-unit-price">${item.unitPrice.toFixed(2)} € / Stk</div>
-            <div class="item-total">${item.total.toFixed(2)} €</div>
+            <div class="item-unit-price">${parseFloat(item.unitPrice).toFixed(2)} € / Stk</div>
+            <div class="item-total">${parseFloat(item.total).toFixed(2)} €</div>
           </div>
         </li>
       `).join('');
 
       // Tax breakdown (§14 UStG compliant)
       const taxBreakdown = document.getElementById('taxBreakdown');
-      const subtotal = quoteData.items.reduce((sum, item) => sum + item.total, 0);
-      const netAmount = quoteData.totalBrutto / 1.19;
-      const taxAmount = quoteData.totalBrutto - netAmount;
+      const subtotal = quoteData.items.reduce((sum, item) => sum + parseFloat(item.total), 0);
+      const netAmount = quoteData.total / 1.19;
+      const taxAmount = quoteData.total - netAmount;
 
       if (quoteData.priceMode === 'netto') {
         taxBreakdown.innerHTML = `
@@ -497,7 +497,7 @@
           </div>
           <div class="tax-row total">
             <span>Gesamtbetrag (brutto)</span>
-            <span>${quoteData.totalBrutto.toFixed(2)} €</span>
+            <span>${parseFloat(quoteData.total).toFixed(2)} €</span>
           </div>
         `;
       } else {
@@ -516,13 +516,13 @@
           </div>
           <div class="tax-row total">
             <span>Gesamtbetrag (brutto)</span>
-            <span>${quoteData.totalBrutto.toFixed(2)} €</span>
+            <span>${parseFloat(quoteData.total).toFixed(2)} €</span>
           </div>
         `;
       }
 
       // Grand total
-      document.getElementById('grandTotalAmount').textContent = `${quoteData.totalBrutto.toFixed(2)} €`;
+      document.getElementById('grandTotalAmount').textContent = `${parseFloat(quoteData.total).toFixed(2)} €`;
       document.getElementById('grandTotalLabel').textContent = 'Gesamtbetrag (brutto)';
 
       // Valid until
