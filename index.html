@@ -228,6 +228,9 @@
       </div>
       <div class="btn-row">
         <button class="share-btn primary" style="background:#2563eb" onclick="downloadPDF()">📄 PDF Angebot</button>
+        <button class="share-btn primary" style="background:var(--green)" onclick="confirmOffer()">✅ Angebot bestätigen</button>
+      </div>
+      <div class="btn-row">
         <button class="share-btn secondary" style="background:#9333ea" onclick="showQuotesHistory()">📚 Angebote anzeigen</button>
       </div>
 
@@ -887,6 +890,58 @@ CREATE POLICY "Allow all operations for authenticated users" ON quotes
       });
     }
 
+    // CONFIRM OFFER
+    async function confirmOffer() {
+      const product = getEkAndName();
+      if (!product) { alert('Bitte zuerst ein Produkt wählen.'); return; }
+      if (!selectedCustomer) { alert('Bitte zuerst einen Kunden auswählen.'); return; }
+
+      const qty = parseInt(document.getElementById('qty').value) || 0;
+      const multi = parseFloat(document.getElementById('multi').value) || 2.5;
+      const vkPerSide = METHOD_CONFIG[printMethod].vkPerSide;
+      const printCostVk = printSides * vkPerSide;
+      const vk = (product.ek * multi) + printCostVk;
+      const disc = getDiscount(qty);
+      const vkDisc = vk * (1 - disc / 100);
+      const total = vkDisc * qty;
+      const year = new Date().getFullYear();
+      const nr = `ANG-${year}-${String(Date.now()).slice(-4)}`;
+
+      const customerName = selectedCustomer.company || `${selectedCustomer.first_name} ${selectedCustomer.last_name}`;
+
+      if (!confirm(`Angebot bestätigen?\n\nKunde: ${customerName}\nProdukt: ${product.name}\nMenge: ${qty}\nGesamt: ${total.toFixed(2)} €\n\nAngebot ${nr} wird als "bestätigt" gespeichert.`)) return;
+
+      try {
+        const quoteData = {
+          customer_id: selectedCustomer.id,
+          quote_number: nr,
+          items: {
+            product_id: product.id || null,
+            product_name: product.name,
+            quantity: qty,
+            unit_price: vkDisc,
+            print_method: printMethod,
+            print_sides: printSides,
+            discount_percent: disc
+          },
+          total: total,
+          status: 'accepted'
+        };
+
+        const { error } = await supabase.from('quotes').insert([quoteData]);
+        if (error) throw error;
+
+        // Show success
+        const btn = document.querySelector('.share-btn[onclick="confirmOffer()"]');
+        btn.textContent = '✅ Gespeichert!';
+        btn.style.background = '#16a34a';
+        setTimeout(() => { btn.textContent = '✅ Angebot bestätigen'; btn.style.background = 'var(--green)'; }, 3000);
+      } catch (e) {
+        console.error('Confirm error:', e);
+        alert('Fehler beim Speichern: ' + e.message + '\n\nBitte prüfe ob die quotes-Tabelle in Supabase existiert.');
+      }
+    }
+
     // PDF GENERATION
     async function downloadPDF() {
       const product = getEkAndName();
@@ -905,8 +960,8 @@ CREATE POLICY "Allow all operations for authenticated users" ON quotes
       const nr = `ANG-${year}-${String(Date.now()).slice(-4)}`;
       const methodLabel = METHOD_CONFIG[printMethod].label;
 
-      // Save quote to database
-      await saveQuote(product, qty, vkDisc, total, nr);
+      // Save quote to database (non-blocking — PDF opens even if save fails)
+      saveQuote(product, qty, vkDisc, total, nr).catch(e => console.warn('Quote save skipped:', e.message));
 
       // Generate PDF
       let customerSection = '';
