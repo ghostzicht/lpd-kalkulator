@@ -1,0 +1,24 @@
+{
+  "name": "lpd-kalkulator",
+  "version": "1.0.0",
+  "description": "🚀 **Major Upgrade:** Vollständiger Umbau von Passwort-Login auf Supabase Auth mit Live-Daten und Kunden-Verwaltung.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ghostzicht/lpd-kalkulator.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/ghostzicht/lpd-kalkulator/issues"
+  },
+  "homepage": "https://github.com/ghostzicht/lpd-kalkulator#readme",
+  "dependencies": {
+    "playwright": "^1.58.2"
+  }
+}
