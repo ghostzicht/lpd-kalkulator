@@ -54,6 +54,16 @@
     .share-btn:active { opacity: 0.8; }
     .share-btn.primary { background: var(--accent); }
     .share-btn.secondary { background: #333; color: var(--muted); }
+    .share-btn.action-secondary { flex: 1; padding: 12px; background: transparent; border: 1.5px solid var(--border); color: var(--text); font-size: 0.8rem; font-weight: 600; border-radius: 12px; cursor: pointer; transition: all 0.2s; text-transform: uppercase; letter-spacing: 0.05em; }
+    .share-btn.action-secondary:active { background: var(--glass); }
+    .share-btn.action-more { padding: 12px 14px; background: transparent; border: 1.5px solid var(--border); color: var(--muted); font-size: 1rem; font-weight: 700; border-radius: 12px; cursor: pointer; transition: all 0.2s; letter-spacing: 2px; }
+    .share-btn.action-more:active { background: var(--glass); }
+    .more-dropdown { position: absolute; bottom: calc(100% + 8px); right: 0; background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 8px; min-width: 240px; box-shadow: 0 -4px 20px rgba(0,0,0,0.3); display: none; z-index: 101; }
+    .more-dropdown.open { display: block; }
+    .more-dropdown button { width: 100%; text-align: left; padding: 10px 12px; background: none; border: none; color: var(--text); font-size: 14px; border-radius: 8px; cursor: pointer; }
+    .more-dropdown button:active { background: var(--glass); }
+    .more-backdrop { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 100; display: none; }
+    .more-backdrop.open { display: block; }
     .ek-display { text-align: center; padding: 8px; margin-bottom: 14px; background: rgba(230,57,70,0.08); border-radius: 8px; font-size: 0.8rem; color: var(--accent); }
     .ek-display strong { font-size: 1.1rem; }
     .info-row { display: flex; justify-content: space-between; padding: 4px 0; font-size: 0.75rem; color: var(--muted); }
@@ -320,21 +330,26 @@
         </div>
       </div>
 
-      <!-- ACTION BUTTONS -->
+      <!-- ACTION BUTTONS — Apple-Style Clean UI -->
       <div class="btn-row">
-        <button class="share-btn primary" onclick="copyOffer()">📋 Angebot kopieren</button>
-        <button class="share-btn secondary" onclick="copyInternal()">🔒 Intern kopieren</button>
+        <button class="share-btn primary" style="background:var(--green);width:100%" onclick="confirmOffer()">✅ Angebot bestätigen</button>
       </div>
       <div class="btn-row">
-        <button class="share-btn primary" style="background:#2563eb" onclick="downloadPDF()">📄 PDF Angebot</button>
-        <button class="share-btn primary" style="background:#f59e0b" onclick="copyQuoteLink()">📤 Angebots-Link kopieren</button>
+        <button class="share-btn action-secondary" onclick="copyOffer()">📤 Angebot teilen</button>
+        <button class="share-btn action-secondary" onclick="downloadPDF()">📄 PDF Angebot</button>
+        <div style="position:relative">
+          <button class="share-btn action-more" onclick="toggleMoreDropdown(event)">•••</button>
+          <div class="more-dropdown" id="moreDropdown">
+            <button onclick="copyOffer()">📋 Text kopieren</button>
+            <button onclick="copyQuoteLink()">🔗 Angebots-Link kopieren</button>
+            <button onclick="copyInternal()">🔒 Interne Kalkulation kopieren</button>
+          </div>
+        </div>
       </div>
       <div class="btn-row">
-        <button class="share-btn primary" style="background:var(--green)" onclick="confirmOffer()">✅ Angebot bestätigen</button>
+        <button class="share-btn action-secondary" style="background:#9333ea;color:white;border-color:#9333ea" onclick="showQuotesHistory()">📚 Angebote anzeigen</button>
       </div>
-      <div class="btn-row">
-        <button class="share-btn secondary" style="background:#9333ea" onclick="showQuotesHistory()">📚 Angebote anzeigen</button>
-      </div>
+      <div class="more-backdrop" id="moreBackdrop" onclick="closeMoreDropdown()"></div>
 
       <footer>Built by <a href="#">Ghostzicht</a> 👻 for LPD · <span id="productCount">0</span> Produkte · <span id="customerCount">0</span> Kunden</footer>
     </div>
@@ -1243,6 +1258,20 @@ CREATE POLICY "Allow all operations for authenticated users" ON quotes
       bar.style.background = marginPct > 50 ? 'var(--green)' : marginPct > 30 ? 'var(--accent2)' : 'var(--accent)';
     }
 
+    // MORE DROPDOWN
+    function toggleMoreDropdown(e) {
+      e.stopPropagation();
+      const dd = document.getElementById('moreDropdown');
+      const bd = document.getElementById('moreBackdrop');
+      const isOpen = dd.classList.contains('open');
+      dd.classList.toggle('open', !isOpen);
+      bd.classList.toggle('open', !isOpen);
+    }
+    function closeMoreDropdown() {
+      document.getElementById('moreDropdown').classList.remove('open');
+      document.getElementById('moreBackdrop').classList.remove('open');
+    }
+
     // COPY FUNCTIONS
     function copyOffer() {
       let items = [];
@@ -1301,9 +1330,9 @@ CREATE POLICY "Allow all operations for authenticated users" ON quotes
       }
 
       navigator.clipboard.writeText(text).then(() => {
+        closeMoreDropdown();
         const b = document.querySelector('[onclick="copyOffer()"]');
-        b.textContent = '✅ Kopiert!';
-        setTimeout(() => b.textContent = '📋 Angebot kopieren', 2000);
+        if (b) { const orig = b.textContent; b.textContent = '✅ Kopiert!'; setTimeout(() => b.textContent = orig, 2000); }
       });
     }
 
@@ -1343,10 +1372,9 @@ CREATE POLICY "Allow all operations for authenticated users" ON quotes
       if (internalNotes.trim()) text += `\n\n🔒 Interne Notizen:\n${internalNotes.trim()}`;
 
       navigator.clipboard.writeText(text).then(() => {
-        const b = document.querySelector('.share-btn.secondary');
-        const original = b.textContent;
-        b.textContent = '✅ Kopiert!';
-        setTimeout(() => b.textContent = original, 2000);
+        closeMoreDropdown();
+        const b = document.querySelector('[onclick="copyInternal()"]');
+        if (b) { const orig = b.textContent; b.textContent = '✅ Kopiert!'; setTimeout(() => b.textContent = orig, 2000); }
       });
     }
 
@@ -1705,9 +1733,9 @@ ${customerNotes.trim() ? '<div class="notes" style="margin-top:20px"><strong>Anm
       const quoteUrl = `${baseUrl}quote.html?data=${encoded}`;
 
       navigator.clipboard.writeText(quoteUrl).then(() => {
+        closeMoreDropdown();
         const btn = document.querySelector('[onclick="copyQuoteLink()"]');
-        btn.textContent = '✅ Link kopiert!';
-        setTimeout(() => btn.textContent = '📤 Angebots-Link kopieren', 2000);
+        if (btn) { const orig = btn.textContent; btn.textContent = '✅ Link kopiert!'; setTimeout(() => btn.textContent = orig, 2000); }
       }).catch(err => {
         console.error('Could not copy text: ', err);
         prompt('Angebots-Link (kopieren mit Cmd+C):', quoteUrl);
