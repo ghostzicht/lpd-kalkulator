@@ -116,6 +116,13 @@
     .user-info { position: absolute; top: 16px; right: 16px; color: var(--muted); font-size: 0.7rem; display: none; }
     .logout-btn { background: none; border: 1px solid var(--border); color: var(--muted); padding: 4px 8px; border-radius: 6px; font-size: 0.7rem; cursor: pointer; margin-left: 8px; }
     .logout-btn:hover { color: var(--accent); border-color: var(--accent); }
+
+    /* SIZE CHIPS */
+    .size-chips { display: flex; gap: 6px; overflow-x: auto; padding: 4px 0; margin-bottom: 14px; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+    .size-chips::-webkit-scrollbar { display: none; }
+    .size-chips button { flex-shrink: 0; padding: 8px 14px; background: var(--bg); border: 2px solid var(--border); border-radius: 10px; color: var(--muted); font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.2s; white-space: nowrap; }
+    .size-chips button.active { border-color: var(--accent); color: var(--accent); background: rgba(230,57,70,0.1); }
+    .sku-tag { font-size: 0.7rem; color: var(--accent2); font-weight: 600; margin-left: 4px; }
   </style>
 </head>
 <body>
@@ -183,7 +190,11 @@
           <div id="searchDropdown" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:50;margin-top:4px;background:var(--card);border:1px solid var(--border);border-radius:10px;max-height:240px;overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,0.5)"></div>
         </div>
         <div style="height:14px"></div>
-        <div class="ek-display" id="ekDisplay" style="display:none">EK Netto: <strong id="ekValue">—</strong></div>
+        <div class="ek-display" id="ekDisplay" style="display:none">EK Netto: <strong id="ekValue">—</strong><span id="skuTag" class="sku-tag" style="display:none">(SKU)</span></div>
+        <div id="sizeChipsContainer" style="display:none">
+          <label>Größe</label>
+          <div class="size-chips" id="sizeChips"></div>
+        </div>
         <label>Oder: Eigener EK Netto (€)</label>
         <input type="number" id="customEk" step="0.01" placeholder="z.B. 4.50" oninput="selectCustom()">
       </div>
@@ -356,6 +367,8 @@
     let highlightIdx = -1;
     let selectedCustomer = null;
     let selectedProduct = null;
+    let selectedSize = null;
+    let skuPrice = null;
     let cart = [];
 
     const METHOD_CONFIG = {
@@ -738,20 +751,93 @@ CREATE POLICY "Allow all operations for authenticated users" ON quotes
       if (typeof p === 'string') p = JSON.parse(p);
       
       selectedProduct = p;
+      selectedSize = null;
+      skuPrice = null;
       document.getElementById('searchInput').value = p.name;
       document.getElementById('searchDropdown').style.display = 'none';
       document.getElementById('customEk').value = '';
       
       document.getElementById('ekDisplay').style.display = 'block';
       document.getElementById('ekValue').textContent = `${parseFloat(p.price_net).toFixed(2)} €`;
+      document.getElementById('skuTag').style.display = 'none';
+      
+      // Render size chips
+      renderSizeChips(p);
+      
+      calc();
+    }
+
+    function renderSizeChips(product) {
+      const container = document.getElementById('sizeChipsContainer');
+      const chips = document.getElementById('sizeChips');
+      
+      if (!product.sizes || !Array.isArray(product.sizes) || product.sizes.length === 0) {
+        container.style.display = 'none';
+        selectedSize = null;
+        skuPrice = null;
+        return;
+      }
+      
+      container.style.display = 'block';
+      chips.innerHTML = product.sizes.map(size => 
+        `<button onclick="selectSize('${size}')">${size}</button>`
+      ).join('');
+      
+      // Default: "M" if available, otherwise first size
+      const defaultSize = product.sizes.includes('M') ? 'M' : product.sizes[0];
+      selectSize(defaultSize);
+    }
+
+    async function selectSize(size) {
+      selectedSize = size;
+      
+      // Update active chip
+      document.querySelectorAll('#sizeChips button').forEach(btn => {
+        btn.classList.toggle('active', btn.textContent === size);
+      });
+      
+      // Load SKU-specific price
+      skuPrice = null;
+      document.getElementById('skuTag').style.display = 'none';
+      
+      if (selectedProduct) {
+        try {
+          const { data } = await supabase
+            .from('blank_size_skus')
+            .select('price_net')
+            .eq('blank_id', selectedProduct.id)
+            .eq('size', size)
+            .not('price_net', 'is', null)
+            .limit(1)
+            .single();
+          
+          if (data && data.price_net != null) {
+            skuPrice = parseFloat(data.price_net);
+            const basePrice = parseFloat(selectedProduct.price_net);
+            
+            document.getElementById('ekValue').textContent = `${skuPrice.toFixed(2)} €`;
+            if (Math.abs(skuPrice - basePrice) > 0.001) {
+              document.getElementById('skuTag').style.display = 'inline';
+            }
+          } else {
+            document.getElementById('ekValue').textContent = `${parseFloat(selectedProduct.price_net).toFixed(2)} €`;
+          }
+        } catch (e) {
+          // Fallback to product price
+          document.getElementById('ekValue').textContent = `${parseFloat(selectedProduct.price_net).toFixed(2)} €`;
+        }
+      }
       
       calc();
     }
 
     function selectCustom() {
       selectedProduct = null;
+      selectedSize = null;
+      skuPrice = null;
       document.getElementById('searchInput').value = '';
       document.getElementById('ekDisplay').style.display = 'none';
+      document.getElementById('sizeChipsContainer').style.display = 'none';
       calc();
     }
 
@@ -807,16 +893,18 @@ CREATE POLICY "Allow all operations for authenticated users" ON quotes
 
     function getEkAndName() {
       if (selectedProduct) {
+        const ek = skuPrice != null ? skuPrice : parseFloat(selectedProduct.price_net);
         return { 
-          ek: parseFloat(selectedProduct.price_net), 
+          ek, 
           name: selectedProduct.name,
-          id: selectedProduct.id 
+          id: selectedProduct.id,
+          size: selectedSize
         };
       }
       
       const customEk = parseFloat(document.getElementById('customEk').value);
       if (customEk > 0) {
-        return { ek: customEk, name: 'Custom', id: null };
+        return { ek: customEk, name: 'Custom', id: null, size: null };
       }
       
       return null;
@@ -990,6 +1078,7 @@ CREATE POLICY "Allow all operations for authenticated users" ON quotes
         id: Date.now(),
         productId: product.id,
         name: product.name,
+        size: product.size || null,
         ek: product.ek,
         qty,
         printMethod,
@@ -1044,7 +1133,7 @@ CREATE POLICY "Allow all operations for authenticated users" ON quotes
         grandTotal += displayTotal;
         return `<div class="cart-item">
           <div class="cart-info">
-            <div class="cart-name">${i + 1}. ${item.name}</div>
+            <div class="cart-name">${i + 1}. ${item.name}${item.size ? ' (' + item.size + ')' : ''}</div>
             <div class="cart-details">${item.qty}× · ${item.methodLabel} ${item.printSides}S · ${item.disc > 0 ? '-' + item.disc + '% ' : ''}${displayPrice.toFixed(2)} €/Stk${priceModeLabel}</div>
           </div>
           <span class="cart-price">${displayTotal.toFixed(2)} €</span>
