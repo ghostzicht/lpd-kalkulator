@@ -1317,7 +1317,7 @@ CREATE POLICY "Allow all operations for authenticated users" ON quotes
         const disc = getDiscount(qty);
         const vkDisc = vk * (1 - disc / 100);
         const total = vkDisc * qty;
-        items = [{ name: product.name, qty, vkDisc, total, disc, methodLabel: METHOD_CONFIG[printMethod].label, printSides, ek: product.ek }];
+        items = [{ name: product.name, qty, vkDisc, total, disc, methodLabel: METHOD_CONFIG[printMethod].label, printSides, ek: product.ek, size: product.size, colorName: product.colorName, colorHex: product.colorHex }];
       }
 
       if (items.length === 0) return;
@@ -1366,7 +1366,7 @@ CREATE POLICY "Allow all operations for authenticated users" ON quotes
         const displayTotal = priceMode === 'netto' ? (item.total / 1.19) : item.total;
         const priceModeLabel = priceMode === 'netto' ? ' (netto)' : '';
         
-        return `<tr><td>${idx+1}</td><td><strong>${item.name}</strong></td><td>${item.methodLabel}, ${item.printSides} Seite${item.printSides>1?'n':''}</td><td class="right">${displayPrice.toFixed(2)} €${priceModeLabel}</td><td class="right">${item.qty}</td><td class="right"><strong>${displayTotal.toFixed(2)} €</strong></td></tr>
+        return `<tr><td>${idx+1}</td><td><strong>${item.name}${item.colorName ? " · " + item.colorName : ""}${item.size ? " · " + item.size : ""}</strong></td><td>${item.methodLabel}, ${item.printSides} Seite${item.printSides>1?'n':''}</td><td class="right">${displayPrice.toFixed(2)} €${priceModeLabel}</td><td class="right">${item.qty}</td><td class="right"><strong>${displayTotal.toFixed(2)} €</strong></td></tr>
 ${item.disc > 0 ? `<tr><td></td><td colspan="4" style="color:#666">Inkl. Staffelrabatt</td><td class="right"><span class="discount-badge">-${item.disc}%</span></td></tr>` : ''}`;
       }).join('');
 
