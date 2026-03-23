@@ -123,6 +123,15 @@
     .size-chips button { flex-shrink: 0; padding: 8px 14px; background: var(--bg); border: 2px solid var(--border); border-radius: 10px; color: var(--muted); font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.2s; white-space: nowrap; }
     .size-chips button.active { border-color: var(--accent); color: var(--accent); background: rgba(230,57,70,0.1); }
     .sku-tag { font-size: 0.7rem; color: var(--accent2); font-weight: 600; margin-left: 4px; }
+
+    /* COLOR CHIPS */
+    .color-chips { display: flex; gap: 10px; overflow-x: auto; padding: 4px 0; margin-bottom: 14px; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+    .color-chips::-webkit-scrollbar { display: none; }
+    .color-chip { flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; padding: 4px; border-radius: 10px; transition: all 0.2s; }
+    .color-chip .swatch { width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--border); transition: all 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+    .color-chip.active .swatch { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent), 0 1px 4px rgba(230,57,70,0.4); }
+    .color-chip .color-name { font-size: 0.6rem; color: var(--muted); max-width: 48px; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; line-height: 1.2; }
+    .color-chip.active .color-name { color: var(--accent); }
   </style>
 </head>
 <body>
@@ -191,6 +200,10 @@
         </div>
         <div style="height:14px"></div>
         <div class="ek-display" id="ekDisplay" style="display:none">EK Netto: <strong id="ekValue">—</strong><span id="skuTag" class="sku-tag" style="display:none">(SKU)</span></div>
+        <div id="colorChipsContainer" style="display:none">
+          <label>Farbe</label>
+          <div class="color-chips" id="colorChips"></div>
+        </div>
         <div id="sizeChipsContainer" style="display:none">
           <label>Größe</label>
           <div class="size-chips" id="sizeChips"></div>
@@ -369,6 +382,9 @@
     let selectedProduct = null;
     let selectedSize = null;
     let skuPrice = null;
+    let selectedColorVariantId = null;
+    let selectedColorHex = null;
+    let colorVariants = [];
     let cart = [];
 
     const METHOD_CONFIG = {
@@ -753,6 +769,9 @@ CREATE POLICY "Allow all operations for authenticated users" ON quotes
       selectedProduct = p;
       selectedSize = null;
       skuPrice = null;
+      selectedColorVariantId = null;
+      selectedColorHex = null;
+      colorVariants = [];
       document.getElementById('searchInput').value = p.name;
       document.getElementById('searchDropdown').style.display = 'none';
       document.getElementById('customEk').value = '';
@@ -761,8 +780,106 @@ CREATE POLICY "Allow all operations for authenticated users" ON quotes
       document.getElementById('ekValue').textContent = `${parseFloat(p.price_net).toFixed(2)} €`;
       document.getElementById('skuTag').style.display = 'none';
       
-      // Render size chips
+      // Render color chips (async), then size chips
+      renderColorChips(p);
       renderSizeChips(p);
+      
+      calc();
+    }
+
+    async function renderColorChips(product) {
+      const container = document.getElementById('colorChipsContainer');
+      const chips = document.getElementById('colorChips');
+      
+      try {
+        const { data: variants } = await supabase
+          .from('blank_color_variants')
+          .select('id, color_name, color_hex, image_front')
+          .eq('blank_id', product.id)
+          .order('sort_order');
+        
+        colorVariants = variants || [];
+        
+        if (colorVariants.length === 0) {
+          container.style.display = 'none';
+          selectedColorVariantId = null;
+          selectedColorHex = null;
+          return;
+        }
+        
+        container.style.display = 'block';
+        chips.innerHTML = colorVariants.map(v => {
+          const hex = v.color_hex || '#888';
+          const name = v.color_name || '?';
+          return `<div class="color-chip" data-variant-id="${v.id}" onclick="selectColor(${v.id}, '${hex.replace(/'/g, "\\'")}')">
+            <div class="swatch" style="background:${hex}"></div>
+            <span class="color-name" title="${name}">${name}</span>
+          </div>`;
+        }).join('');
+        
+        // Auto-select first color
+        const first = colorVariants[0];
+        selectColor(first.id, first.color_hex || '#888');
+        
+      } catch (e) {
+        console.error('Error loading color variants:', e);
+        container.style.display = 'none';
+      }
+    }
+
+    async function selectColor(variantId, hex) {
+      selectedColorVariantId = variantId;
+      selectedColorHex = hex;
+      
+      // Update active chip UI
+      document.querySelectorAll('#colorChips .color-chip').forEach(chip => {
+        chip.classList.toggle('active', parseInt(chip.dataset.variantId) === variantId);
+      });
+      
+      // If a size is already selected, reload the SKU price with this color
+      if (selectedSize && selectedProduct) {
+        await loadSkuPrice();
+      }
+      
+      calc();
+    }
+
+    async function loadSkuPrice() {
+      skuPrice = null;
+      document.getElementById('skuTag').style.display = 'none';
+      
+      if (!selectedProduct || !selectedSize) return;
+      
+      try {
+        const query = supabase
+          .from('blank_size_skus')
+          .select('price_net, sku')
+          .eq('blank_id', selectedProduct.id)
+          .eq('size', selectedSize)
+          .not('price_net', 'is', null);
+        
+        // Add variant filter if a color is selected
+        if (selectedColorVariantId) {
+          query.eq('variant_id', selectedColorVariantId);
+        }
+        
+        const { data } = await query.limit(1).single();
+        
+        if (data && data.price_net != null) {
+          skuPrice = parseFloat(data.price_net);
+          const basePrice = parseFloat(selectedProduct.price_net);
+          
+          document.getElementById('ekValue').textContent = `${skuPrice.toFixed(2)} €`;
+          if (Math.abs(skuPrice - basePrice) > 0.001) {
+            document.getElementById('skuTag').style.display = 'inline';
+            document.getElementById('skuTag').textContent = data.sku ? `(${data.sku})` : '(SKU)';
+          }
+        } else {
+          document.getElementById('ekValue').textContent = `${parseFloat(selectedProduct.price_net).toFixed(2)} €`;
+        }
+      } catch (e) {
+        document.getElementById('ekValue').textContent = `${parseFloat(selectedProduct.price_net).toFixed(2)} €`;
+      }
       
       calc();
     }
@@ -796,47 +913,20 @@ CREATE POLICY "Allow all operations for authenticated users" ON quotes
         btn.classList.toggle('active', btn.textContent === size);
       });
       
-      // Load SKU-specific price
-      skuPrice = null;
-      document.getElementById('skuTag').style.display = 'none';
-      
-      if (selectedProduct) {
-        try {
-          const { data } = await supabase
-            .from('blank_size_skus')
-            .select('price_net')
-            .eq('blank_id', selectedProduct.id)
-            .eq('size', size)
-            .not('price_net', 'is', null)
-            .limit(1)
-            .single();
-          
-          if (data && data.price_net != null) {
-            skuPrice = parseFloat(data.price_net);
-            const basePrice = parseFloat(selectedProduct.price_net);
-            
-            document.getElementById('ekValue').textContent = `${skuPrice.toFixed(2)} €`;
-            if (Math.abs(skuPrice - basePrice) > 0.001) {
-              document.getElementById('skuTag').style.display = 'inline';
-            }
-          } else {
-            document.getElementById('ekValue').textContent = `${parseFloat(selectedProduct.price_net).toFixed(2)} €`;
-          }
-        } catch (e) {
-          // Fallback to product price
-          document.getElementById('ekValue').textContent = `${parseFloat(selectedProduct.price_net).toFixed(2)} €`;
-        }
-      }
-      
-      calc();
+      // Load SKU-specific price (considers selected color variant)
+      await loadSkuPrice();
     }
 
     function selectCustom() {
       selectedProduct = null;
       selectedSize = null;
       skuPrice = null;
+      selectedColorVariantId = null;
+      selectedColorHex = null;
+      colorVariants = [];
       document.getElementById('searchInput').value = '';
       document.getElementById('ekDisplay').style.display = 'none';
+      document.getElementById('colorChipsContainer').style.display = 'none';
       document.getElementById('sizeChipsContainer').style.display = 'none';
       calc();
     }
@@ -894,17 +984,21 @@ CREATE POLICY "Allow all operations for authenticated users" ON quotes
     function getEkAndName() {
       if (selectedProduct) {
         const ek = skuPrice != null ? skuPrice : parseFloat(selectedProduct.price_net);
+        const colorName = colorVariants.find(v => v.id === selectedColorVariantId)?.color_name || null;
         return { 
           ek, 
           name: selectedProduct.name,
           id: selectedProduct.id,
-          size: selectedSize
+          size: selectedSize,
+          colorVariantId: selectedColorVariantId,
+          colorHex: selectedColorHex,
+          colorName: colorName
         };
       }
       
       const customEk = parseFloat(document.getElementById('customEk').value);
       if (customEk > 0) {
-        return { ek: customEk, name: 'Custom', id: null, size: null };
+        return { ek: customEk, name: 'Custom', id: null, size: null, colorVariantId: null, colorHex: null, colorName: null };
       }
       
       return null;
@@ -1079,6 +1173,9 @@ CREATE POLICY "Allow all operations for authenticated users" ON quotes
         productId: product.id,
         name: product.name,
         size: product.size || null,
+        colorName: product.colorName || null,
+        colorHex: product.colorHex || null,
+        colorVariantId: product.colorVariantId || null,
         ek: product.ek,
         qty,
         printMethod,
@@ -1133,7 +1230,7 @@ CREATE POLICY "Allow all operations for authenticated users" ON quotes
         grandTotal += displayTotal;
         return `<div class="cart-item">
           <div class="cart-info">
-            <div class="cart-name">${i + 1}. ${item.name}${item.size ? ' (' + item.size + ')' : ''}</div>
+            <div class="cart-name">${i + 1}. ${item.name}${item.colorName ? ' · ' + item.colorName : ''}${item.size ? ' (' + item.size + ')' : ''}${item.colorHex ? ' <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:' + item.colorHex + ';vertical-align:middle;margin-left:4px;border:1px solid rgba(255,255,255,0.2)"></span>' : ''}</div>
             <div class="cart-details">${item.qty}× · ${item.methodLabel} ${item.printSides}S · ${item.disc > 0 ? '-' + item.disc + '% ' : ''}${displayPrice.toFixed(2)} €/Stk${priceModeLabel}</div>
           </div>
           <span class="cart-price">${displayTotal.toFixed(2)} €</span>
