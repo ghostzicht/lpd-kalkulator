@@ -132,6 +132,26 @@
     .color-chip.active .swatch { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent), 0 1px 4px rgba(230,57,70,0.4); }
     .color-chip .color-name { font-size: 0.6rem; color: var(--muted); max-width: 48px; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; line-height: 1.2; }
     .color-chip.active .color-name { color: var(--accent); }
+
+    /* PRINT AREA CHECKBOXES */
+    .print-area-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+    .print-area-item { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: var(--bg); border: 2px solid var(--border); border-radius: 10px; cursor: pointer; transition: all 0.2s; user-select: none; }
+    .print-area-item.checked { border-color: var(--accent); background: rgba(230,57,70,0.1); }
+    .print-area-item input[type="checkbox"] { accent-color: var(--accent); width: 18px; height: 18px; cursor: pointer; }
+    .print-area-item .area-name { flex: 1; font-size: 0.85rem; font-weight: 600; color: var(--text); }
+    .print-area-item .area-price { font-size: 0.85rem; font-weight: 600; color: var(--accent2); }
+
+    /* SHIPPING */
+    .shipping-row { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: var(--bg); border: 2px solid var(--border); border-radius: 10px; margin-bottom: 14px; transition: all 0.2s; }
+    .shipping-row.active { border-color: var(--accent); background: rgba(230,57,70,0.1); }
+    .shipping-row input[type="checkbox"] { accent-color: var(--accent); width: 18px; height: 18px; cursor: pointer; }
+    .shipping-row label { flex: 1; font-size: 0.85rem; font-weight: 600; cursor: pointer; }
+    .shipping-row input[type="number"] { width: 90px; padding: 6px 10px; background: var(--card); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-size: 0.85rem; font-weight: 600; text-align: right; }
+
+    /* NOTES */
+    textarea.note-input { width: 100%; padding: 12px 14px; background: var(--bg); border: 1px solid var(--border); border-radius: 10px; color: var(--text); font-size: 0.9rem; font-family: inherit; outline: none; transition: border-color 0.2s; resize: vertical; min-height: 70px; margin-bottom: 14px; }
+    textarea.note-input:focus { border-color: var(--accent); }
+    textarea.note-input::placeholder { color: var(--muted); }
   </style>
 </head>
 <body>
@@ -221,11 +241,23 @@
           <button onclick="setMethod('dtf')" id="method-dtf">DTF</button>
           <button onclick="setMethod('plastisol')" id="method-plastisol">Plastisol</button>
         </div>
-        <label>Druckseiten</label>
-        <div class="print-sides">
-          <button onclick="setSides(1)" id="side1" class="active">1 Seite</button>
-          <button onclick="setSides(2)" id="side2">2 Seiten</button>
-          <button onclick="setSides(3)" id="side3">3 Seiten</button>
+        <label>Druckbereiche</label>
+        <div id="printAreasContainer">
+          <!-- Fallback: alte Buttons -->
+          <div class="print-sides" id="printSidesFallback">
+            <button onclick="setSides(1)" id="side1" class="active">1 Seite</button>
+            <button onclick="setSides(2)" id="side2">2 Seiten</button>
+            <button onclick="setSides(3)" id="side3">3 Seiten</button>
+          </div>
+          <!-- Neue Druckbereiche aus Supabase -->
+          <div class="print-area-list" id="printAreaList" style="display:none"></div>
+        </div>
+
+        <label>Versand</label>
+        <div class="shipping-row" id="shippingRow">
+          <input type="checkbox" id="shippingCheck" onchange="toggleShipping()">
+          <label for="shippingCheck">Versandkosten hinzufügen</label>
+          <input type="number" id="shippingCostInput" value="5.90" step="0.01" min="0" style="display:none" oninput="onShippingCostChange()">
         </div>
         <label>Preisanzeige</label>
         <div class="print-sides">
@@ -249,6 +281,7 @@
         <div class="result-row"><span class="label" id="resVkLabel">VK nach Rabatt (brutto)</span><span class="value" id="resVkDiscount">—</span></div>
         <div class="result-row"><span class="label" id="resVkNettoLabel">VK netto</span><span class="value" id="resVkNetto">—</span></div>
         <div class="result-row unit"><span class="label">Marge pro Stück</span><span class="value" id="resMargin">—</span></div>
+        <div class="result-row" id="resShippingRow" style="display:none"><span class="label">+ Versandkosten</span><span class="value" id="resShipping">—</span></div>
         <div class="result-row total"><span class="label">Gesamtpreis</span><span class="value" id="resTotal">—</span></div>
         <div class="margin-bar"><div class="margin-bar-fill" id="marginBar"></div></div>
         <div style="margin-top:8px">
@@ -256,6 +289,15 @@
           <div class="info-row"><span>Gewinn gesamt</span><span id="resProfit">—</span></div>
           <div class="info-row"><span>Gewinn-Marge</span><span id="resProfitPct">—</span></div>
         </div>
+      </div>
+
+      <!-- NOTES -->
+      <div class="card">
+        <div class="card-title">Notizen</div>
+        <label>Notizen für den Kunden (erscheint auf PDF)</label>
+        <textarea class="note-input" id="customerNotesInput" placeholder="z.B. Lieferzeit ca. 2 Wochen..." oninput="customerNotes=this.value"></textarea>
+        <label>Interne Notizen (nur für euch)</label>
+        <textarea class="note-input" id="internalNotesInput" placeholder="z.B. Kunde will evtl. nachbestellen..." oninput="internalNotes=this.value"></textarea>
       </div>
 
       <!-- ADD TO CART -->
@@ -386,6 +428,12 @@
     let selectedColorHex = null;
     let colorVariants = [];
     let cart = [];
+    let selectedPrintAreas = []; // Array von {name, cost_brutto, cost_ek}
+    let printAreasAvailable = false;
+    let includeShipping = false;
+    let shippingCost = 5.90;
+    let customerNotes = '';
+    let internalNotes = '';
 
     const METHOD_CONFIG = {
       dtg:       { label: 'DTG-Druck', vkPerSide: 8, ekPerSide: 3.77 },
@@ -780,9 +828,10 @@ CREATE POLICY "Allow all operations for authenticated users" ON quotes
       document.getElementById('ekValue').textContent = `${parseFloat(p.price_net).toFixed(2)} €`;
       document.getElementById('skuTag').style.display = 'none';
       
-      // Render color chips (async), then size chips
+      // Render color chips (async), then size chips, then print areas
       renderColorChips(p);
       renderSizeChips(p);
+      loadPrintAreas(p);
       
       calc();
     }
@@ -841,6 +890,102 @@ CREATE POLICY "Allow all operations for authenticated users" ON quotes
         await loadSkuPrice();
       }
       
+      calc();
+    }
+
+    // PRINT AREAS FROM SUPABASE
+    async function loadPrintAreas(product) {
+      selectedPrintAreas = [];
+      printAreasAvailable = false;
+      const listEl = document.getElementById('printAreaList');
+      const fallbackEl = document.getElementById('printSidesFallback');
+      
+      if (!product || !product.id) {
+        listEl.style.display = 'none';
+        fallbackEl.style.display = 'flex';
+        return;
+      }
+
+      try {
+        const { data: areas } = await supabase
+          .from('blank_print_areas')
+          .select('id, name')
+          .eq('blank_id', product.id)
+          .order('name');
+
+        if (!areas || areas.length === 0) {
+          listEl.style.display = 'none';
+          fallbackEl.style.display = 'flex';
+          return;
+        }
+
+        // Load pricing for each area
+        const areaItems = [];
+        for (const area of areas) {
+          const { data: costs } = await supabase
+            .from('print_area_pricing')
+            .select('print_area_name, print_type, cost_brutto')
+            .eq('print_area_name', area.name)
+            .eq('print_type', printMethod.toUpperCase());
+
+          const cost = costs && costs.length > 0 ? costs[0].cost_brutto : METHOD_CONFIG[printMethod].vkPerSide;
+          areaItems.push({ id: area.id, name: area.name, cost_brutto: parseFloat(cost) });
+        }
+
+        printAreasAvailable = true;
+        fallbackEl.style.display = 'none';
+        listEl.style.display = 'flex';
+        
+        listEl.innerHTML = areaItems.map(a => `
+          <div class="print-area-item" onclick="togglePrintArea('${a.name.replace(/'/g,"\\'")}', ${a.cost_brutto}, this)">
+            <input type="checkbox" data-area="${a.name}" tabindex="-1">
+            <span class="area-name">${a.name}</span>
+            <span class="area-price">${a.cost_brutto.toFixed(2)} €</span>
+          </div>
+        `).join('');
+
+        // Auto-select first area
+        const firstItem = listEl.querySelector('.print-area-item');
+        if (firstItem) firstItem.click();
+
+      } catch (e) {
+        console.error('Error loading print areas:', e);
+        listEl.style.display = 'none';
+        fallbackEl.style.display = 'flex';
+      }
+    }
+
+    function togglePrintArea(name, costBrutto, el) {
+      const cb = el.querySelector('input[type="checkbox"]');
+      const idx = selectedPrintAreas.findIndex(a => a.name === name);
+      if (idx >= 0) {
+        selectedPrintAreas.splice(idx, 1);
+        cb.checked = false;
+        el.classList.remove('checked');
+      } else {
+        // Use EK ratio from METHOD_CONFIG
+        const ekPerSide = METHOD_CONFIG[printMethod].ekPerSide;
+        const vkPerSide = METHOD_CONFIG[printMethod].vkPerSide;
+        const costEk = costBrutto * (ekPerSide / vkPerSide);
+        selectedPrintAreas.push({ name, cost_brutto: costBrutto, cost_ek: costEk });
+        cb.checked = true;
+        el.classList.add('checked');
+      }
+      calc();
+    }
+
+    // SHIPPING
+    function toggleShipping() {
+      includeShipping = document.getElementById('shippingCheck').checked;
+      const costInput = document.getElementById('shippingCostInput');
+      const row = document.getElementById('shippingRow');
+      costInput.style.display = includeShipping ? 'block' : 'none';
+      row.classList.toggle('active', includeShipping);
+      calc();
+    }
+
+    function onShippingCostChange() {
+      shippingCost = parseFloat(document.getElementById('shippingCostInput').value) || 0;
       calc();
     }
 
@@ -924,10 +1069,14 @@ CREATE POLICY "Allow all operations for authenticated users" ON quotes
       selectedColorVariantId = null;
       selectedColorHex = null;
       colorVariants = [];
+      selectedPrintAreas = [];
+      printAreasAvailable = false;
       document.getElementById('searchInput').value = '';
       document.getElementById('ekDisplay').style.display = 'none';
       document.getElementById('colorChipsContainer').style.display = 'none';
       document.getElementById('sizeChipsContainer').style.display = 'none';
+      document.getElementById('printAreaList').style.display = 'none';
+      document.getElementById('printSidesFallback').style.display = 'flex';
       calc();
     }
 
@@ -954,6 +1103,8 @@ CREATE POLICY "Allow all operations for authenticated users" ON quotes
       ['dtg','dtf','plastisol'].forEach(id => 
         document.getElementById(`method-${id}`).classList.toggle('active', id === m)
       );
+      // Reload print areas with new method pricing
+      if (selectedProduct) loadPrintAreas(selectedProduct);
       calc();
     }
 
@@ -1024,25 +1175,47 @@ CREATE POLICY "Allow all operations for authenticated users" ON quotes
       const vkPerSide = METHOD_CONFIG[printMethod].vkPerSide;
       const ekPerSide = METHOD_CONFIG[printMethod].ekPerSide;
       const methodLabel = METHOD_CONFIG[printMethod].label;
-      const printCostVk = printSides * vkPerSide;
-      const printCostEk = printSides * ekPerSide;
+      
+      // Print costs: use real areas if available, otherwise fallback
+      let printCostVk, printCostEk, printLabel;
+      if (printAreasAvailable && selectedPrintAreas.length > 0) {
+        printCostVk = selectedPrintAreas.reduce((sum, a) => sum + a.cost_brutto, 0);
+        printCostEk = selectedPrintAreas.reduce((sum, a) => sum + a.cost_ek, 0);
+        printLabel = `${methodLabel}: ${selectedPrintAreas.map(a => a.name).join(' + ')} = ${printCostVk.toFixed(2)} €`;
+      } else {
+        printCostVk = printSides * vkPerSide;
+        printCostEk = printSides * ekPerSide;
+        printLabel = `${methodLabel}: ${printSides}× ${vkPerSide} € = ${printCostVk.toFixed(2)} €`;
+      }
+      
       const vkBrutto = (ek * multi) + printCostVk;
       const discountPct = getDiscount(qty);
       const vkAfterDiscount = vkBrutto * (1 - discountPct / 100);
-      const total = vkAfterDiscount * qty;
+      const subtotal = vkAfterDiscount * qty;
+      const shippingAmount = includeShipping ? shippingCost : 0;
+      const total = subtotal + shippingAmount;
       const vkNetto = vkAfterDiscount / 1.19;
       const profitPerUnit = vkNetto - ek - printCostEk;
-      const profitTotal = profitPerUnit * qty;
+      const profitTotal = profitPerUnit * qty + (shippingAmount > 0 ? shippingAmount / 1.19 * 0.5 : 0); // shipping adds some profit
       const marginPct = (profitPerUnit / vkNetto * 100);
 
       document.getElementById('resultCard').style.display = 'block';
       document.getElementById('resEk').textContent = `${ek.toFixed(2)} €`;
-      document.getElementById('resPrint').textContent = `${methodLabel}: ${printSides}× ${vkPerSide} € = ${printCostVk.toFixed(2)} €`;
+      document.getElementById('resPrint').textContent = printLabel;
       document.getElementById('resMulti').textContent = `${multi.toFixed(1)}×`;
       document.getElementById('resVk').textContent = `${vkBrutto.toFixed(2)} €`;
       document.getElementById('resDiscount').innerHTML = discountPct > 0 
         ? `<span class="badge badge-orange">-${discountPct}%</span>` 
         : `<span class="badge badge-green">Kein Rabatt</span>`;
+      
+      // Shipping row
+      const shippingRow = document.getElementById('resShippingRow');
+      if (includeShipping && shippingAmount > 0) {
+        shippingRow.style.display = 'flex';
+        document.getElementById('resShipping').textContent = `${shippingAmount.toFixed(2)} €`;
+      } else {
+        shippingRow.style.display = 'none';
+      }
       
       // Set labels and prices based on price mode
       if (priceMode === 'netto') {
@@ -1050,7 +1223,8 @@ CREATE POLICY "Allow all operations for authenticated users" ON quotes
         document.getElementById('resVkDiscount').textContent = `${vkNetto.toFixed(2)} €`;
         document.getElementById('resVkNettoLabel').textContent = 'VK brutto';
         document.getElementById('resVkNetto').textContent = `${vkAfterDiscount.toFixed(2)} €`;
-        document.getElementById('resTotal').textContent = `${(vkNetto * qty).toFixed(2)} € (netto)`;
+        const totalNetto = (vkNetto * qty) + (shippingAmount / 1.19);
+        document.getElementById('resTotal').textContent = `${totalNetto.toFixed(2)} € (netto)`;
       } else {
         document.getElementById('resVkLabel').textContent = 'VK nach Rabatt (brutto)';
         document.getElementById('resVkDiscount').textContent = `${vkAfterDiscount.toFixed(2)} €`;
@@ -1061,7 +1235,7 @@ CREATE POLICY "Allow all operations for authenticated users" ON quotes
       
       document.getElementById('resMargin').textContent = `${profitPerUnit.toFixed(2)} € (${marginPct.toFixed(0)}%)`;
       document.getElementById('resPrintEk').textContent = `${printCostEk.toFixed(2)} € × ${qty} = ${(printCostEk * qty).toFixed(2)} €`;
-      document.getElementById('resProfit').textContent = `${profitTotal.toFixed(2)} €`;
+      document.getElementById('resProfit').textContent = `${(profitPerUnit * qty).toFixed(2)} €`;
       document.getElementById('resProfitPct').textContent = `${marginPct.toFixed(1)}%`;
 
       const bar = document.getElementById('marginBar');
@@ -1098,22 +1272,32 @@ CREATE POLICY "Allow all operations for authenticated users" ON quotes
         }];
       }
 
-      const grandTotal = items.reduce((s, i) => s + i.displayTotal, 0);
+      let grandTotal = items.reduce((s, i) => s + i.displayTotal, 0);
+      const shippingAmount = includeShipping ? shippingCost : 0;
+      const shippingDisplay = priceMode === 'netto' ? (shippingAmount / 1.19) : shippingAmount;
+      if (shippingAmount > 0) grandTotal += shippingDisplay;
       const priceModeLabel = priceMode === 'netto' ? ' netto' : ' brutto';
       let text = `📋 Angebot\n━━━━━━━━━━━━━━━\n`;
       if (selectedCustomer) {
         text += `Kunde: ${selectedCustomer.company || `${selectedCustomer.first_name} ${selectedCustomer.last_name}`}\n\n`;
       }
       items.forEach((item, idx) => {
-        text += `${idx+1}. ${item.name}\n   ${item.qty}× · ${item.methodLabel}, ${item.printSides} Seite(n)`;
+        const printInfo = item.printAreasInfo || `${item.printSides} Seite(n)`;
+        text += `${idx+1}. ${item.name}\n   ${item.qty}× · ${item.methodLabel}, ${printInfo}`;
         if (item.disc > 0) text += ` · Rabatt: ${item.disc}%`;
         text += `\n   Stückpreis: ${item.displayPrice.toFixed(2)} €${priceModeLabel} · Gesamt: ${item.displayTotal.toFixed(2)} €\n\n`;
       });
+      if (shippingAmount > 0) {
+        text += `📦 Versandkosten: ${shippingDisplay.toFixed(2)} €${priceModeLabel}\n\n`;
+      }
       text += `━━━━━━━━━━━━━━━\nGesamtbetrag: ${grandTotal.toFixed(2)} €${priceModeLabel}\n\n`;
       if (priceMode === 'netto') {
         text += `zzgl. MwSt. (19%)`;
       } else {
         text += `Preise inkl. MwSt.`;
+      }
+      if (customerNotes.trim()) {
+        text += `\n\n📝 Hinweise:\n${customerNotes.trim()}`;
       }
 
       navigator.clipboard.writeText(text).then(() => {
@@ -1131,16 +1315,32 @@ CREATE POLICY "Allow all operations for authenticated users" ON quotes
       const multi = parseFloat(document.getElementById('multi').value) || 2.5;
       const vkPerSide = METHOD_CONFIG[printMethod].vkPerSide;
       const ekPerSide = METHOD_CONFIG[printMethod].ekPerSide;
-      const printCostVk = printSides * vkPerSide;
-      const printCostEk = printSides * ekPerSide;
+      
+      let printCostVk, printCostEk, printInfo;
+      if (printAreasAvailable && selectedPrintAreas.length > 0) {
+        printCostVk = selectedPrintAreas.reduce((sum, a) => sum + a.cost_brutto, 0);
+        printCostEk = selectedPrintAreas.reduce((sum, a) => sum + a.cost_ek, 0);
+        printInfo = selectedPrintAreas.map(a => a.name).join(' + ');
+      } else {
+        printCostVk = printSides * vkPerSide;
+        printCostEk = printSides * ekPerSide;
+        printInfo = `${printSides}×`;
+      }
+      
       const vk = (product.ek * multi) + printCostVk;
       const disc = getDiscount(qty);
       const vkDisc = vk * (1 - disc / 100);
-      const total = vkDisc * qty;
+      const subtotal = vkDisc * qty;
+      const shippingAmount = includeShipping ? shippingCost : 0;
+      const total = subtotal + shippingAmount;
       const vkNettoC = vkDisc / 1.19;
       const profit = (vkNettoC - product.ek - printCostEk) * qty;
 
-      const text = `🔒 Interne Kalkulation\n━━━━━━━━━━━━━━━\nProdukt: ${product.name}\nEK Netto: ${product.ek.toFixed(2)} €\nMenge: ${qty} | Veredelung: ${METHOD_CONFIG[printMethod].label} ${printSides}× | Multi: ${multi}×\nVK Brutto: ${vkDisc.toFixed(2)} € (Netto: ${(vkDisc/1.19).toFixed(2)} €)\nGesamt: ${total.toFixed(2)} €\nGewinn: ${profit.toFixed(2)} € (${((profit / (vkNettoC * qty)) * 100).toFixed(1)}%)`;
+      let text = `🔒 Interne Kalkulation\n━━━━━━━━━━━━━━━\nProdukt: ${product.name}\nEK Netto: ${product.ek.toFixed(2)} €\nMenge: ${qty} | Veredelung: ${METHOD_CONFIG[printMethod].label} ${printInfo} | Multi: ${multi}×\nVK Brutto: ${vkDisc.toFixed(2)} € (Netto: ${(vkDisc/1.19).toFixed(2)} €)`;
+      if (shippingAmount > 0) text += `\nVersandkosten: ${shippingAmount.toFixed(2)} €`;
+      text += `\nGesamt: ${total.toFixed(2)} €\nGewinn: ${profit.toFixed(2)} € (${((profit / (vkNettoC * qty)) * 100).toFixed(1)}%)`;
+      if (customerNotes.trim()) text += `\n\n📝 Kundennotizen:\n${customerNotes.trim()}`;
+      if (internalNotes.trim()) text += `\n\n🔒 Interne Notizen:\n${internalNotes.trim()}`;
 
       navigator.clipboard.writeText(text).then(() => {
         const b = document.querySelector('.share-btn.secondary');
@@ -1159,14 +1359,24 @@ CREATE POLICY "Allow all operations for authenticated users" ON quotes
       const multi = parseFloat(document.getElementById('multi').value) || 2.5;
       const vkPerSide = METHOD_CONFIG[printMethod].vkPerSide;
       const ekPerSide = METHOD_CONFIG[printMethod].ekPerSide;
-      const printCostVk = printSides * vkPerSide;
-      const printCostEk = printSides * ekPerSide;
+      
+      let printCostVk, printCostEk, printAreasInfo;
+      if (printAreasAvailable && selectedPrintAreas.length > 0) {
+        printCostVk = selectedPrintAreas.reduce((sum, a) => sum + a.cost_brutto, 0);
+        printCostEk = selectedPrintAreas.reduce((sum, a) => sum + a.cost_ek, 0);
+        printAreasInfo = selectedPrintAreas.map(a => a.name).join(' + ');
+      } else {
+        printCostVk = printSides * vkPerSide;
+        printCostEk = printSides * ekPerSide;
+        printAreasInfo = null;
+      }
+      
       const vk = (product.ek * multi) + printCostVk;
       const disc = getDiscount(qty);
       const vkDisc = vk * (1 - disc / 100);
       const total = vkDisc * qty;
       const vkNetto = vkDisc / 1.19;
-      const profitPerUnit = vkNetto - product.ek - (printSides * ekPerSide);
+      const profitPerUnit = vkNetto - product.ek - printCostEk;
 
       cart.push({
         id: Date.now(),
@@ -1180,6 +1390,7 @@ CREATE POLICY "Allow all operations for authenticated users" ON quotes
         qty,
         printMethod,
         printSides,
+        printAreasInfo,
         multi,
         disc,
         vkDisc,
@@ -1231,18 +1442,33 @@ CREATE POLICY "Allow all operations for authenticated users" ON quotes
         return `<div class="cart-item">
           <div class="cart-info">
             <div class="cart-name">${i + 1}. ${item.name}${item.colorName ? ' · ' + item.colorName : ''}${item.size ? ' (' + item.size + ')' : ''}${item.colorHex ? ' <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:' + item.colorHex + ';vertical-align:middle;margin-left:4px;border:1px solid rgba(255,255,255,0.2)"></span>' : ''}</div>
-            <div class="cart-details">${item.qty}× · ${item.methodLabel} ${item.printSides}S · ${item.disc > 0 ? '-' + item.disc + '% ' : ''}${displayPrice.toFixed(2)} €/Stk${priceModeLabel}</div>
+            <div class="cart-details">${item.qty}× · ${item.methodLabel} ${item.printAreasInfo || item.printSides + 'S'} · ${item.disc > 0 ? '-' + item.disc + '% ' : ''}${displayPrice.toFixed(2)} €/Stk${priceModeLabel}</div>
           </div>
           <span class="cart-price">${displayTotal.toFixed(2)} €</span>
           <button class="cart-remove" onclick="removeFromCart(${item.id})">✕</button>
         </div>`;
       }).join('');
 
+      // Add shipping if enabled
+      if (includeShipping && shippingCost > 0) {
+        const shippingDisplay = priceMode === 'netto' ? (shippingCost / 1.19) : shippingCost;
+        grandTotal += shippingDisplay;
+        cartItems.innerHTML += `<div class="cart-item">
+          <div class="cart-info">
+            <div class="cart-name">📦 Versandkosten</div>
+            <div class="cart-details">1× pauschal</div>
+          </div>
+          <span class="cart-price">${shippingDisplay.toFixed(2)} €</span>
+          <span style="width:32px"></span>
+        </div>`;
+      }
+
       cartTotal.textContent = grandTotal.toFixed(2) + ' €';
     }
 
     function getCartTotal() {
-      return cart.reduce((sum, item) => sum + item.total, 0);
+      const itemsTotal = cart.reduce((sum, item) => sum + item.total, 0);
+      return itemsTotal + (includeShipping ? shippingCost : 0);
     }
 
     // CONFIRM OFFER
@@ -1322,7 +1548,9 @@ CREATE POLICY "Allow all operations for authenticated users" ON quotes
 
       if (items.length === 0) return;
 
-      const grandTotal = items.reduce((sum, i) => sum + i.total, 0);
+      const itemsSubtotal = items.reduce((sum, i) => sum + i.total, 0);
+      const shippingAmount = includeShipping ? shippingCost : 0;
+      const grandTotal = itemsSubtotal + shippingAmount;
       const grandTotalNetto = grandTotal / 1.19;
       const mwstAmount = grandTotal - grandTotalNetto;
       const today = new Date().toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
@@ -1366,9 +1594,13 @@ CREATE POLICY "Allow all operations for authenticated users" ON quotes
         const displayTotal = priceMode === 'netto' ? (item.total / 1.19) : item.total;
         const priceModeLabel = priceMode === 'netto' ? ' (netto)' : '';
         
-        return `<tr><td>${idx+1}</td><td><strong>${item.name}${item.colorName ? " · " + item.colorName : ""}${item.size ? " · " + item.size : ""}</strong></td><td>${item.methodLabel}, ${item.printSides} Seite${item.printSides>1?'n':''}</td><td class="right">${displayPrice.toFixed(2)} €${priceModeLabel}</td><td class="right">${item.qty}</td><td class="right"><strong>${displayTotal.toFixed(2)} €</strong></td></tr>
+        const printInfo = item.printAreasInfo || `${item.printSides} Seite${item.printSides>1?'n':''}`;
+        return `<tr><td>${idx+1}</td><td><strong>${item.name}${item.colorName ? " · " + item.colorName : ""}${item.size ? " · " + item.size : ""}</strong></td><td>${item.methodLabel}, ${printInfo}</td><td class="right">${displayPrice.toFixed(2)} €${priceModeLabel}</td><td class="right">${item.qty}</td><td class="right"><strong>${displayTotal.toFixed(2)} €</strong></td></tr>
 ${item.disc > 0 ? `<tr><td></td><td colspan="4" style="color:#666">Inkl. Staffelrabatt</td><td class="right"><span class="discount-badge">-${item.disc}%</span></td></tr>` : ''}`;
       }).join('');
+      
+      // Shipping row for PDF
+      const shippingRowPdf = shippingAmount > 0 ? `<tr><td></td><td><strong>📦 Versandkosten</strong></td><td>pauschal</td><td class="right"></td><td class="right">1</td><td class="right"><strong>${shippingAmount.toFixed(2)} €</strong></td></tr>` : '';
 
       // Generate tax breakdown according to §14 UStG (always show)
       const subtotalDisplay = priceMode === 'netto' ? (grandTotal / 1.19) : grandTotal;
@@ -1387,9 +1619,11 @@ ${customerSection}
 <p class="section-title">Angebotsdetails</p>
 <table><thead><tr><th>Pos.</th><th>Produkt</th><th>Veredelung</th><th class="right">Stückpreis</th><th class="right">Menge</th><th class="right">Gesamt</th></tr></thead><tbody>
 ${itemsDisplay}
+${shippingRowPdf}
 </tbody></table>
 ${taxDisplay}
 <div class="notes"><strong>Hinweise:</strong><br>• Preise gemäß §14 UStG mit ausgewiesener Mehrwertsteuer<br>• Dieses Angebot ist 14 Tage gültig<br>• Veredelungskosten beinhalten Einrichtung und Druck<br>• Bei größeren Mengen sind weitere Rabatte möglich</div>
+${customerNotes.trim() ? '<div class="notes" style="margin-top:20px"><strong>Anmerkungen:</strong><br>' + customerNotes.trim().replace(/\n/g, '<br>') + '</div>' : ''}
 <div class="footer">Local Print Department · Textildruck & Print on Demand</div>
 <div class="no-print" style="text-align:center;margin-top:30px"><button onclick="window.print()" style="padding:12px 32px;background:#e63946;color:white;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer">📄 Als PDF speichern / Drucken</button></div>
 </body></html>`);
@@ -1424,7 +1658,9 @@ ${taxDisplay}
         items = [{ name: product.name, qty, vkDisc, total, disc, methodLabel: METHOD_CONFIG[printMethod].label, printSides }];
       }
 
-      const grandTotal = items.reduce((sum, i) => sum + i.total, 0);
+      const itemsSubtotal = items.reduce((sum, i) => sum + i.total, 0);
+      const shippingAmt = includeShipping ? shippingCost : 0;
+      const grandTotal = itemsSubtotal + shippingAmt;
       const today = new Date();
       const validUntil = new Date(today.getTime() + 14 * 24 * 60 * 60 * 1000); // 14 days
       const year = new Date().getFullYear();
@@ -1454,6 +1690,8 @@ ${taxDisplay}
           methodLabel: item.methodLabel,
           printSides: item.printSides
         })),
+        shipping: shippingAmt,
+        customerNotes: customerNotes.trim(),
         total: priceMode === 'netto' ? (grandTotal / 1.19) : grandTotal,
         totalBrutto: grandTotal,
         quoteNumber: nr,
